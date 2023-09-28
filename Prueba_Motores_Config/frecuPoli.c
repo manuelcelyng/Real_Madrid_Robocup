@@ -31,7 +31,7 @@
     // CONFIGURACIÓN INICIAL DEL ESC, se comenta una vez que ya corre la primera vez.
     // Indica si quedó bien configurado el hecho de girar en ambos sentidos
 
-    /*
+    
     // punto neutro
     printf("set neutro");
     pwm_set_gpio_level(PWM_PIN, 750);
@@ -47,7 +47,7 @@
     pwm_set_gpio_level(PWM_PIN, 500);
 
     sleep_ms(4000);
-    */
+    
 
     
     

@@ -7,9 +7,9 @@
 #include "hardware/pwm.h"
  
 #define PWM_GPIO_MOTOR_ONE 2
-#define PWM_GPIO_MOTOR_TWO 3
+#define PWM_GPIO_MOTOR_TWO 4
 #define PWM_GPIO_MOTOR_THREE 6
-#define PWM_GPIO_MOTOR_FOUR   7
+#define PWM_GPIO_MOTOR_FOUR  8
 #define FRECUENCY_ALL_PWM_MOTORS 50
 
 void initPWM(uint8_t gpio, uint16_t frec){
@@ -20,10 +20,10 @@ void initPWM(uint8_t gpio, uint16_t frec){
     assert(frec>=8);                                             ///< PWM can manage interrupt periods greater than 262 milis - 3.5Hz-> see on sdk
     float prescaler = (float)SYS_CLK_KHZ/500;
     assert(prescaler<256); ///< the integer part of the clock divider can be greater than 255. 8bit prescaler
-    uint32_t wrap = (500000)/(2*frec); // if mode phase_correct is actived,it means that the frecuency is divided by 2.
+    uint32_t wrap = (500000)/(frec); // if mode phase_correct is actived,it means that the frecuency is divided by 2.
     assert(wrap<((1UL<<16)-1)); // validate wrap less than 16bits -> max is 65536
     pwm_config cfg =  pwm_get_default_config();
-    pwm_config_set_phase_correct(&cfg,true);   // the correct phase mode signal is defined. true
+    //pwm_config_set_phase_correct(&cfg,true);   // the correct phase mode signal is defined. true
     pwm_config_set_clkdiv(&cfg,prescaler);     // split clock system running at 125MHz to run slower
     pwm_config_set_clkdiv_mode(&cfg,PWM_DIV_FREE_RUNNING);  // mode PMW_DIV_FREE_RUNNING, counts always up to wrap value. no need input b
     pwm_config_set_wrap(&cfg,wrap);   // set the wrap value, calculated based on frecuency of reloj system and frecuency required.
@@ -34,10 +34,11 @@ void initPWM(uint8_t gpio, uint16_t frec){
 
 void configESCMotor(uint8_t PWM_GPIO){
     
-    gpio_set_function(PWM_GPIO, GPIO_FUNC_PWM);
-    pwm_set_enabled(pwm_gpio_to_slice_num(PWM_GPIO),true);
+    gpio_set_function(PWM_GPIO, GPIO_FUNC_PWM); // Choose the function of PIN GPIO LIKE PWM
+    pwm_set_enabled(pwm_gpio_to_slice_num(PWM_GPIO),true); // initialize run pwm
 
     //printf("set neutro");
+    // Set the duty in determinated slice pwm, ej: is wants a 5% duty 
     pwm_set_chan_level(pwm_gpio_to_slice_num(PWM_GPIO), pwm_gpio_to_channel(PWM_GPIO), 750);
 
     sleep_ms(4000);
@@ -66,53 +67,72 @@ int main(){
     initPWM(PWM_GPIO_MOTOR_TWO , FRECUENCY_ALL_PWM_MOTORS);
     initPWM(PWM_GPIO_MOTOR_THREE , FRECUENCY_ALL_PWM_MOTORS);
     initPWM(PWM_GPIO_MOTOR_FOUR , FRECUENCY_ALL_PWM_MOTORS);
+
+    /*
+    gpio_set_function(PWM_GPIO_MOTOR_ONE , GPIO_FUNC_PWM); 
+    gpio_set_function(PWM_GPIO_MOTOR_TWO , GPIO_FUNC_PWM); 
+    gpio_set_function(PWM_GPIO_MOTOR_THREE, GPIO_FUNC_PWM); 
+    gpio_set_function(PWM_GPIO_MOTOR_FOUR, GPIO_FUNC_PWM); 
+
+    pwm_set_enabled(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_ONE),true); // initialize run pwm
+    pwm_set_enabled(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_TWO),true); // initialize run pwm
+    pwm_set_enabled(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_THREE),true); // initialize run pwm
+    pwm_set_enabled(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_FOUR),true); // initialize run pwm
+    */
     configESCMotor(PWM_GPIO_MOTOR_ONE);
     configESCMotor(PWM_GPIO_MOTOR_TWO);
     configESCMotor(PWM_GPIO_MOTOR_THREE);
     configESCMotor(PWM_GPIO_MOTOR_FOUR);
 
+    
+
+
 
     printf("End of configuration");
-
-    while (1)
-    {
-         int duty = 750;
-    sleep_ms(3000);
-     while (1) {
     
+    int duty = 750;
+    sleep_ms(3000);
+    while (1) {
     
         while(duty < 1000){
             duty +=10;
             pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
             sleep_ms(1000);
         }
 
         while(duty>750){
             duty -=10;
             pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
             sleep_ms(1000);
         }
 
         while(duty>500){
             duty-=10;
             pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
             sleep_ms(1000);
         }
 
         while(duty<750){
             duty+=10; 
             pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
             sleep_ms(1000);
         }
 
         sleep_ms(3000);
         
      }
-    }
+}
     
 
-
-
-
-
-}
