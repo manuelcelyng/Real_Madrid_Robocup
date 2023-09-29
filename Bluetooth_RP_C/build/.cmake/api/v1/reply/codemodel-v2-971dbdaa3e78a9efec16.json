@@ -1125,14 +1125,14 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "bluetooth::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-bluetooth-Debug-2fd76339d849a47265bc.json",
+					"jsonFile" : "target-bluetooth-Debug-bcec8c828c7475835527.json",
 					"name" : "bluetooth",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 43,
 					"id" : "bs2_default::@bc554eaed616d198a22d",
-					"jsonFile" : "target-bs2_default-Debug-6e197e447f37dfb1fbe1.json",
+					"jsonFile" : "target-bs2_default-Debug-b1dcf82d54c41f2846a7.json",
 					"name" : "bs2_default",
 					"projectIndex" : 1
 				},
@@ -1177,8 +1177,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/laboratorio/Practica 2/bluetooth/build",
-		"source" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/laboratorio/Practica 2/bluetooth"
+		"build" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/Real_Madrid_Robocup/Bluetooth_RP_C/build",
+		"source" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/Real_Madrid_Robocup/Bluetooth_RP_C"
 	},
 	"version" : 
 	{

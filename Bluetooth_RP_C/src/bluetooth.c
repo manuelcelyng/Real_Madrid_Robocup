@@ -7,7 +7,6 @@
 volatile uint8_t buffer_index = 0;
 char buffer[BUFFER_SIZE];
 
-
 void uart_rx_handler() {
     printf("hola");
     while (uart_is_readable(uart1)) {    
@@ -21,6 +20,8 @@ void uart_rx_handler() {
             printf("Command: %s\n", buffer);
         }
     }
+
+    irq_clear(UART1_IRQ);
 }
 
 
@@ -28,6 +29,7 @@ int main() {
     
     stdio_init_all();
     uart_init(uart1, 9600);  
+    uart_set_format(uart1, 8, 1, UART_PARITY_NONE);
     gpio_set_function(8, GPIO_FUNC_UART);
     gpio_set_function(9, GPIO_FUNC_UART);
     sleep_ms(100);

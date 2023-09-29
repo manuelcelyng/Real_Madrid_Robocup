@@ -1,4 +1,4 @@
-// Padded and checksummed version of: D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/laboratorio/Practica 2/bluetooth/build/pico-sdk/src/rp2_common/boot_stage2/bs2_default.bin
+// Padded and checksummed version of: D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/Real_Madrid_Robocup/Bluetooth_RP_C/build/pico-sdk/src/rp2_common/boot_stage2/bs2_default.bin
 
 .cpu cortex-m0plus
 .thumb

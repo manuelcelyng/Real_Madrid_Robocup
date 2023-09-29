@@ -39,9 +39,9 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/laboratorio/Practica 2/bluetooth/build/pico-sdk/tools/cmake_install.cmake")
-  include("D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/laboratorio/Practica 2/bluetooth/build/pico-sdk/src/cmake_install.cmake")
-  include("D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/laboratorio/Practica 2/bluetooth/build/pico-sdk/docs/cmake_install.cmake")
+  include("D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/Real_Madrid_Robocup/Bluetooth_RP_C/build/pico-sdk/tools/cmake_install.cmake")
+  include("D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/Real_Madrid_Robocup/Bluetooth_RP_C/build/pico-sdk/src/cmake_install.cmake")
+  include("D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/Real_Madrid_Robocup/Bluetooth_RP_C/build/pico-sdk/docs/cmake_install.cmake")
 
 endif()
 

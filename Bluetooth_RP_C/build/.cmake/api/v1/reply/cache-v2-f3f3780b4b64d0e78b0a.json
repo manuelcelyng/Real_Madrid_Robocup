@@ -195,7 +195,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "d:/Documentos/UdeA/Semestre 11/Sistemas embebidos/laboratorio/Practica 2/bluetooth/build"
+			"value" : "d:/Documentos/UdeA/Semestre 11/Sistemas embebidos/Real_Madrid_Robocup/Bluetooth_RP_C/build"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -679,7 +679,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/laboratorio/Practica 2/bluetooth/build/CMakeFiles/pkgRedirects"
+			"value" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/Real_Madrid_Robocup/Bluetooth_RP_C/build/CMakeFiles/pkgRedirects"
 		},
 		{
 			"name" : "CMAKE_GENERATOR",
@@ -739,7 +739,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/laboratorio/Practica 2/bluetooth"
+			"value" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/Real_Madrid_Robocup/Bluetooth_RP_C"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -1475,7 +1475,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : " C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2_common/cmsis C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2040/hardware_regs C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2_common/cmsis C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2040/hardware_regs C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2_common/cmsis C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2040/hardware_regs C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2_common/cmsis C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2040/hardware_regs C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2_common/cmsis C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2040/hardware_regs"
+			"value" : " C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2_common/cmsis C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2040/hardware_regs C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2_common/cmsis C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2040/hardware_regs C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2_common/cmsis C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2040/hardware_regs C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2_common/cmsis C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk/src/rp2040/hardware_regs"
 		},
 		{
 			"name" : "PICO_DOXYGEN_PATHS",
@@ -1763,7 +1763,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/laboratorio/Practica 2/bluetooth/build"
+			"value" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/Real_Madrid_Robocup/Bluetooth_RP_C/build"
 		},
 		{
 			"name" : "bluetooth_IS_TOP_LEVEL",
@@ -1787,7 +1787,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/laboratorio/Practica 2/bluetooth"
+			"value" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/Real_Madrid_Robocup/Bluetooth_RP_C"
 		},
 		{
 			"name" : "pico-sdk-tools_DIR",
@@ -1811,7 +1811,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/laboratorio/Practica 2/bluetooth/build/pico-sdk"
+			"value" : "D:/Documentos/UdeA/Semestre 11/Sistemas embebidos/Real_Madrid_Robocup/Bluetooth_RP_C/build/pico-sdk"
 		},
 		{
 			"name" : "pico_sdk_IS_TOP_LEVEL",
