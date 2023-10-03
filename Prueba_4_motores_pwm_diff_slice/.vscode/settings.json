@@ -24,6 +24,9 @@
   "cmake.generator": "Ninja",
   "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
   "files.associations": {
-    "cstdint": "c"
+    "cstdint": "c",
+    "shared_functions.h": "c",
+    "sharedfunctions.h": "c",
+    "stdlib.h": "c"
   }
 }

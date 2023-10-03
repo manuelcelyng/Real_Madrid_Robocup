@@ -1,21 +1,17 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include "pico/stdlib.h"
-#include "hardware/adc.h"
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
- 
-#define PWM_GPIO_MOTOR_ONE 2
-#define PWM_GPIO_MOTOR_TWO 4
-#define PWM_GPIO_MOTOR_THREE 6
-#define PWM_GPIO_MOTOR_FOUR  8
-#define FRECUENCY_ALL_PWM_MOTORS 50
+
+
+// include mis propios .h
+#include "motor_control.h" // .h definicion de variables y metodos para el control del motor
+#include "bluetooth.h" // .h definicion de todo lo relacionado a la comunicación bluetooth
+#include "sharedfunctions.h" // es el que comparte funciones con el codigo bluetooth.c
 
 void initPWM(uint8_t gpio, uint16_t frec){
-
     uint slice = pwm_gpio_to_slice_num(gpio);  // Get the value of the slice the gpio belongs to
     uint channel = pwm_gpio_to_channel(gpio);  // Get the value of the CHANNEL (A or B) to wich the gpio belongs in the specific slice.
-
     assert(frec>=8);                                             ///< PWM can manage interrupt periods greater than 262 milis - 3.5Hz-> see on sdk
     float prescaler = (float)SYS_CLK_KHZ/500;
     assert(prescaler<256); ///< the integer part of the clock divider can be greater than 255. 8bit prescaler
@@ -31,57 +27,27 @@ void initPWM(uint8_t gpio, uint16_t frec){
     pwm_init(slice,&cfg,true);  // Enables the slice pwm. when the bool value is true.
 }
 
-void configESCMotor(uint8_t PWM_GPIO){
-    
-    gpio_set_function(PWM_GPIO, GPIO_FUNC_PWM); // Choose the function of PIN GPIO LIKE PWM
-    pwm_set_enabled(pwm_gpio_to_slice_num(PWM_GPIO),true); // initialize run pwm
 
-    //printf("set neutro");
-    // Set the duty in determinated slice pwm, ej: is wants a 5% duty 
-    pwm_set_chan_level(pwm_gpio_to_slice_num(PWM_GPIO), pwm_gpio_to_channel(PWM_GPIO), 750);
-
-    sleep_ms(4000);
-
-    //printf("set forward Direction"); 
-    // punto final de direccion 
-    pwm_set_chan_level(pwm_gpio_to_slice_num(PWM_GPIO), pwm_gpio_to_channel(PWM_GPIO), 800);
-    sleep_ms(4000);
-
-    ////printf("set Backward Direction"); 
-    // punto final de direccion 
-    pwm_set_chan_level(pwm_gpio_to_slice_num(PWM_GPIO), pwm_gpio_to_channel(PWM_GPIO), 600);
-
-    sleep_ms(4000);
-
-
-
-
+void initMotor(uint8_t PWM_GPIO){
+    gpio_set_function(PWM_GPIO, GPIO_FUNC_PWM);// enable GPIO like PMW function.
+    pwm_set_chan_level(pwm_gpio_to_slice_num(PWM_GPIO), pwm_gpio_to_channel( PWM_GPIO), 800); // set duty cycle of pwm signal, its choose based on Wrap config
+    sleep_ms(3000); 
+    pwm_set_chan_level(pwm_gpio_to_slice_num(PWM_GPIO), pwm_gpio_to_channel(PWM_GPIO), 750); 
 }
 
-
-
-void initMotor(uint PWM_GPIO){
-    //enable motors one by one
-
-
-    // MOTOR 1
-    gpio_set_function(PWM_GPIO, GPIO_FUNC_PWM); // Choose the function of PIN GPIO LIKE PWM
-    //pwm_set_enabled(pwm_gpio_to_slice_num(PWM_GPIO),true); // initialize run pwm
-    pwm_set_chan_level(pwm_gpio_to_slice_num(PWM_GPIO), pwm_gpio_to_channel( PWM_GPIO), 800);
-    sleep_ms(1000);
-    pwm_set_chan_level(pwm_gpio_to_slice_num(PWM_GPIO), pwm_gpio_to_channel(PWM_GPIO), 750);
-    
-  
-
-
-
+void moverMotor(char* buffer){
+    printf("Command: %s\n", buffer);
+ 
 }
 
 
 
 
 int main(){
+    stdio_init_all();
     // initialize all pwm channel and slice depend of motors pin selected.
+
+    /*
     initPWM(PWM_GPIO_MOTOR_ONE , FRECUENCY_ALL_PWM_MOTORS);
     if(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_ONE)!= pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_TWO)){
         initPWM(PWM_GPIO_MOTOR_TWO , FRECUENCY_ALL_PWM_MOTORS);
@@ -91,68 +57,36 @@ int main(){
         initPWM(PWM_GPIO_MOTOR_FOUR , FRECUENCY_ALL_PWM_MOTORS);
     }
 
-    //All motors are initialized one by one.
-
+    //All motors are initialized one by one. Takes 2 seconds per motor
     initMotor(PWM_GPIO_MOTOR_ONE);
     initMotor(PWM_GPIO_MOTOR_TWO);
     initMotor(PWM_GPIO_MOTOR_THREE);
     initMotor(PWM_GPIO_MOTOR_FOUR);
-    
-    
-
-    /*
-    gpio_set_function(PWM_GPIO_MOTOR_ONE , GPIO_FUNC_PWM);
-    gpio_set_function(PWM_GPIO_MOTOR_TWO , GPIO_FUNC_PWM);
-    gpio_set_function(PWM_GPIO_MOTOR_THREE, GPIO_FUNC_PWM);
-    gpio_set_function(PWM_GPIO_MOTOR_FOUR, GPIO_FUNC_PWM);
-
-    pwm_set_enabled(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_ONE),true); // initialize run pwm
-    pwm_set_enabled(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_TWO),true); // initialize run pwm
-    pwm_set_enabled(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_THREE),true); // initialize run pwm
-    pwm_set_enabled(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_FOUR),true); // initialize run pwm
-
-
-    pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 750);
-    pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 750);
-    pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 750);
-    pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 750);
     */
 
-    
-    
-    /*
-    configESCMotor(PWM_GPIO_MOTOR_ONE);
-    configESCMotor(PWM_GPIO_MOTOR_TWO);
-    configESCMotor(PWM_GPIO_MOTOR_THREE);
-    configESCMotor(PWM_GPIO_MOTOR_FOUR);
-    */
-
-
-   
-
-    
-
+    //Init comunication 
+    initUart(GPIO_UART_TX, GPIO_UART_RX);
 
 
     printf("End of configuration");
-    
-    int duty = 800;
-    sleep_ms(2000);
-    int flag = 1;
+    sleep_ms(1000);
+    int duty = 750;
+    int flag = 5;
     while (1) {
 
+        printf("Alive");
         if(flag==1){
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
+            // pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
+            // pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
+            // pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
+            // pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
             flag = 0;
         }
 
         duty = 750;
-        sleep(5000);
+        sleep_ms(1000);
 
-
+    /*
         pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
         pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
         pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
@@ -162,13 +96,14 @@ int main(){
 
         if(flag == 0){
             duty =  680;
-            sleep(5000);
+            sleep_ms(5000);
             pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
             pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
             pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
             pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
             flag = 2;
         }
+        */
 
 
 
