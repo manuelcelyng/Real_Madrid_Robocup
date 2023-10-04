@@ -8,11 +8,11 @@ project(imu)
 pico_sdk_init()
 
 add_executable(myimu
-    imu.c
+    myimu.c
 )
 
 pico_enable_stdio_usb(myimu 1)
 
-target_link_libraries(myimu pico_stdlib)
+target_link_libraries(myimu pico_stdlib hardware_i2c)
 
 pico_add_extra_outputs(myimu)
