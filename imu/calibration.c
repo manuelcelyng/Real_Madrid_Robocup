@@ -32,6 +32,12 @@ static int addr = 0x68;
 #define XGyro 0x13
 #define YGyro 0x15
 #define ZGyro 0x17
+#define XOffsetAccel -1167
+#define YOffsetAccel -496
+#define ZOffsetAccel 1811
+#define XOffsetGyro 21
+#define YOffsetGyro -45
+#define ZOffsetGyro 7
 
 #ifdef i2c_default
 static void mpu6050_reset() {
@@ -112,10 +118,6 @@ int main() {
 
     int16_t acceleration[3], gyro[3], temp;
     int16_t acceleration0[3], gyro0[3];
-    long f_ax,f_ay, f_az;
-    int p_ax, p_ay, p_az;
-    long f_gx,f_gy, f_gz;
-    int p_gx, p_gy, p_gz;
     int counter=0;
     acceleration0[0] = getOffset(XAccel);
     acceleration0[1] = getOffset(YAccel);
@@ -127,61 +129,51 @@ int main() {
     while (1) {
         mpu6050_read_raw(acceleration, gyro, &temp);
 
-        // Filtrar las lecturas
-        f_ax = f_ax-(f_ax>>5)+acceleration[0];
-        p_ax = f_ax>>5;
+        //Calibrar el acelerometro a 1g en el eje z (ajustar el offset)
+        if (acceleration[0]>0){acceleration0[0]--;}
+        else {acceleration0[0]++;}
+        if (acceleration[1]>0){acceleration0[1]--;}
+        else {acceleration0[1]++;}
+        if (acceleration[2]-16384>0){acceleration0[2]--;}
+        else {acceleration0[2]++;}
 
-        f_ay = f_ay-(f_ay>>5)+acceleration[1];
-        p_ay = f_ay>>5;
+        setOffset(acceleration0[0], XAccel);
+        setOffset(acceleration0[1], YAccel);
+        setOffset(acceleration0[2], ZAccel);
 
-        f_az = f_az-(f_az>>5)+acceleration[2];
-        p_az = f_az>>5;
+        //Calibrar el giroscopio a 0º/s en todos los ejes (ajustar el offset)
+        if (gyro[0]>0) {gyro0[0]--;}
+        else {gyro0[0]++;}
+        if (gyro[1]>0) gyro0[1]--;
+        else {gyro0[1]++;}
+        if (gyro[2]>0) gyro0[2]--;
+        else {gyro0[2]++;}
 
-        f_gx = f_gx-(f_gx>>3)+gyro[0];
-        p_gx = f_gx>>3;
-
-        f_gy = f_gy-(f_gy>>3)+gyro[1];
-        p_gy = f_gy>>3;
-
-        f_gz = f_gz-(f_gz>>3)+gyro[2];
-        p_gz = f_gz>>3;
+        setOffset(gyro0[0], XGyro);
+        setOffset(gyro0[1], YGyro);
+        setOffset(gyro0[2], ZGyro);
 
         if (counter==100){
             //Mostrar las lecturas separadas por un [tab]
             printf("promedio:");
-            printf("%d  ", p_ax); 
-            printf("%d  ", p_ay); 
-            printf("%d  ", p_az); 
-            printf("%d  ", p_gx); 
-            printf("%d  ", p_gy); 
-            printf("%d  \n", p_gz);
+            printf("%d  ", acceleration[0]); 
+            printf("%d  ", acceleration[1]); 
+            printf("%d  ", acceleration[2]); 
+            printf("%d  ", gyro[0]); 
+            printf("%d  ", gyro[1]); 
+            printf("%d  \n", gyro[2]);
 
-            //Calibrar el acelerometro a 1g en el eje z (ajustar el offset)
-            if (p_ax>0){acceleration0[0]--;}
-            else {acceleration0[0]++;}
-            if (p_ay>0){acceleration0[1]--;}
-            else {acceleration0[1]++;}
-            if (p_az-16384>0){acceleration0[2]--;}
-            else {acceleration0[2]++;}
-
-            setOffset(acceleration0[0], XAccel);
-            setOffset(acceleration0[1], YAccel);
-            setOffset(acceleration0[2], ZAccel);
-
-            //Calibrar el giroscopio a 0º/s en todos los ejes (ajustar el offset)
-            if (p_gx>0) {gyro0[0]--;}
-            else {gyro0[0]++;}
-            if (p_gy>0) gyro0[1]--;
-            else {gyro0[1]++;}
-            if (p_gz>0) gyro0[2]--;
-            else {gyro0[2]++;}
-
-            setOffset(gyro0[0], XGyro);
-            setOffset(gyro0[1], YGyro);
-            setOffset(gyro0[2], ZGyro);
-
+            printf("offset:");
+            printf("%d  ", acceleration0[0]); 
+            printf("%d  ", acceleration0[1]); 
+            printf("%d  ", acceleration0[2]); 
+            printf("%d  ", gyro0[0]); 
+            printf("%d  ", gyro0[1]); 
+            printf("%d  \n", gyro0[2]);
+        
             counter = 0;
         }
         counter++;
+        sleep_ms(10);
     }
 }
