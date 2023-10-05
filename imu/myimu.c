@@ -26,6 +26,18 @@
 
 // By default these devices  are on bus address 0x68
 static int addr = 0x68;
+#define XAccel 0x06
+#define YAccel 0x08
+#define ZAccel 0x0A
+#define XGyro 0x13
+#define YGyro 0x15
+#define ZGyro 0x17
+#define XOffsetAccel -1167
+#define YOffsetAccel -496
+#define ZOffsetAccel 1811
+#define XOffsetGyro 21
+#define YOffsetGyro -45
+#define ZOffsetGyro 7
 
 #ifdef i2c_default
 static void mpu6050_reset() {
@@ -33,6 +45,24 @@ static void mpu6050_reset() {
     // There are a load more options to set up the device in different ways that could be added here
     uint8_t buf[] = {0x6B, 0};
     i2c_write_blocking(i2c_default, addr, buf, 2, false);
+}
+
+void setOffset(int16_t valor, uint8_t dir){
+    uint8_t buf[3];
+    buf[0] = dir;
+    buf[1] = (valor >> 8) & 0xFF;
+    buf[2] = valor & 0xFF;
+    i2c_write_blocking(i2c_default, addr, buf, 3, false);
+}
+
+int16_t getOffset(uint8_t dir){
+    int16_t valor;
+    uint8_t buffer[2];
+    uint8_t val = dir;
+    i2c_write_blocking(i2c_default, addr, &val, 1, true); // true to keep master control of bus
+    i2c_read_blocking(i2c_default, addr, buffer, 2, false);
+    valor = buffer[0] << 8 | buffer[1];
+    return valor;
 }
 
 static void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp) {
@@ -93,6 +123,12 @@ int main() {
 
     int16_t acceleration[3], gyro[3], temp;
     uint8_t buffer[6];
+    setOffset(XOffsetAccel, XAccel);
+    setOffset(YOffsetAccel, YAccel);
+    setOffset(ZOffsetAccel, ZAccel);
+    setOffset(XOffsetGyro, XGyro);
+    setOffset(YOffsetGyro, YGyro);
+    setOffset(ZOffsetGyro, ZGyro);
 
     while (1) {
         mpu6050_read_raw(acceleration, gyro, &temp);
