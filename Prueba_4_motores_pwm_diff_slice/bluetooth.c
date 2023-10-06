@@ -29,10 +29,10 @@ void uart_rx_handler() {
         {
             buffer[buffer_index++] = data;
         } else {
-            buffer[buffer_index] = '\0'; 
+            buffer[buffer_index] = '\0';
             //printf("Command: %s\n", buffer);
             strcpy(miCadena,  buffer);
-            //printf("La cadena es: %s\n", miCadena);
+            printf("La cadena es: %s\n", miCadena);
             moverMotor(miCadena);
             // Puntero al buffer de nuevo al inicio
             buffer_index  = 0;
@@ -45,7 +45,7 @@ void uart_rx_handler() {
 void initUart(uint8_t gpio_tx ,uint8_t gpio_rx){
     uart_init(uart1, 9600);  
     uart_set_format(uart1, 8, 1, UART_PARITY_NONE);
-    uart_set_fifo_enabled(uart1, true);
+    uart_set_fifo_enabled(uart1, false);
     gpio_set_function(gpio_tx, GPIO_FUNC_UART);
     gpio_set_function(gpio_rx, GPIO_FUNC_UART);
     sleep_ms(100);

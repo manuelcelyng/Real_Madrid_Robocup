@@ -30,24 +30,53 @@ void initPWM(uint8_t gpio, uint16_t frec){
 
 void initMotor(uint8_t PWM_GPIO){
     gpio_set_function(PWM_GPIO, GPIO_FUNC_PWM);// enable GPIO like PMW function.
-    pwm_set_chan_level(pwm_gpio_to_slice_num(PWM_GPIO), pwm_gpio_to_channel( PWM_GPIO), 800); // set duty cycle of pwm signal, its choose based on Wrap config
+    pwm_set_chan_level(pwm_gpio_to_slice_num(PWM_GPIO), pwm_gpio_to_channel( PWM_GPIO), 820); // set duty cycle of pwm signal, its choose based on Wrap config
     sleep_ms(3000); 
     pwm_set_chan_level(pwm_gpio_to_slice_num(PWM_GPIO), pwm_gpio_to_channel(PWM_GPIO), 750); 
 }
 
 void moverMotor(char* buffer){
-    printf("Command: %s\n", buffer);
- 
+    if(buffer[0] =='z'){
+        //printf("ENTRO %s", buffer[0]);
+        
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 780);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 780);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 780);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 780);
+       
+    }
+    if(buffer[0] =='s'){
+        //printf("ENTRO %c", buffer[0]);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 750);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 750);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 750);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 750);
+        // sleep_ms(1000);
+    }
+    if(buffer[0] =='a'){
+        //printf("ENTRO %s", buffer[0]);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 680);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 680);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 680);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 680);
+    }
+    if(buffer[0] =='b'){
+        //printf("ENTRO %c", buffer[0]);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 750);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 750);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 750);
+        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 750);
+    }
 }
 
 
 
 
 int main(){
-    stdio_init_all();
+    //stdio_init_all();
     // initialize all pwm channel and slice depend of motors pin selected.
 
-    /*
+    
     initPWM(PWM_GPIO_MOTOR_ONE , FRECUENCY_ALL_PWM_MOTORS);
     if(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_ONE)!= pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_TWO)){
         initPWM(PWM_GPIO_MOTOR_TWO , FRECUENCY_ALL_PWM_MOTORS);
@@ -62,92 +91,17 @@ int main(){
     initMotor(PWM_GPIO_MOTOR_TWO);
     initMotor(PWM_GPIO_MOTOR_THREE);
     initMotor(PWM_GPIO_MOTOR_FOUR);
-    */
 
+    
+
+    sleep_ms(5000);
     //Init comunication 
     initUart(GPIO_UART_TX, GPIO_UART_RX);
-
-
-    printf("End of configuration");
-    sleep_ms(1000);
-    int duty = 750;
-    int flag = 5;
+    int duty = 780;
+    int flag = 1;
     while (1) {
-
-        printf("Alive");
-        if(flag==1){
-            // pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
-            // pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
-            // pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
-            // pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
-            flag = 0;
-        }
-
-        duty = 750;
-        sleep_ms(1000);
-
-    /*
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
-
-       
-
-        if(flag == 0){
-            duty =  680;
-            sleep_ms(5000);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
-            flag = 2;
-        }
-        */
-
-
-
-
-        /*
-    
-        while(duty < 1000){
-            duty +=10;
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
-            sleep_ms(1000);
-        }
-
-        while(duty>750){
-            duty -=10;
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
-            sleep_ms(1000);
-        }
-
-        while(duty>500){
-            duty-=10;
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
-            sleep_ms(1000);
-        }
-
-        while(duty<750){
-            duty+=10; 
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, duty);
-            pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, duty);
-            sleep_ms(1000);
-        }
-
-        sleep_ms(3000);
-        */
+        tight_loop_contents();
+        
      }
 }
     

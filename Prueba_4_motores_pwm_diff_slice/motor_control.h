@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define PWM_GPIO_MOTOR_ONE 0 // PIN1
+#define PWM_GPIO_MOTOR_ONE 0 // PIN 1
 #define PWM_GPIO_MOTOR_TWO 2 // PIN 4
 #define PWM_GPIO_MOTOR_THREE 4 //PIN 6
 #define PWM_GPIO_MOTOR_FOUR  6  // PIN 9
