@@ -2,7 +2,6 @@
 #define UART_COMMUNICATION_H
 
 #include <stdint.h>
-#include "hardware/pwm.h"
 
 #define BUFFER_SIZE 160
 #define GPIO_UART_TX 8
