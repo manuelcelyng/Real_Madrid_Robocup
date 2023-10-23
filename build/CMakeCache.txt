@@ -18,16 +18,16 @@
 CMAKE_BUILD_TYPE:STRING=Debug
 
 //No help, variable specified on the command line.
-CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/g++
-
-//No help, variable specified on the command line.
-CMAKE_C_COMPILER:FILEPATH=/usr/bin/gcc
-
-//No help, variable specified on the command line.
 CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE
 
 //Value Computed by CMake.
 CMAKE_FIND_PACKAGE_REDIRECTS_DIR:STATIC=/workspaces/Real_Madrid_Robocup/build/CMakeFiles/pkgRedirects
+
+//No help, variable specified on the command line.
+CMAKE_MODULE_PATH:STRING=/pico-sdk-tools
+
+//No help, variable specified on the command line.
+CMAKE_TOOLCHAIN_FILE:FILEPATH=/cmake/preload/toolchains/pico_arm_gcc.cmake
 
 //Set to ON to fetch copy of SDK from git if not otherwise locatable
 PICO_SDK_FETCH_FROM_GIT:BOOL=
@@ -60,7 +60,7 @@ CMAKE_CTEST_COMMAND:INTERNAL=/home/codespace/.local/lib/python3.10/site-packages
 //Name of external makefile project generator.
 CMAKE_EXTRA_GENERATOR:INTERNAL=
 //Name of generator.
-CMAKE_GENERATOR:INTERNAL=Unix Makefiles
+CMAKE_GENERATOR:INTERNAL=Ninja
 //Generator instance identifier.
 CMAKE_GENERATOR_INSTANCE:INTERNAL=
 //Name of generator platform.
@@ -69,7 +69,7 @@ CMAKE_GENERATOR_PLATFORM:INTERNAL=
 CMAKE_GENERATOR_TOOLSET:INTERNAL=
 //Source directory with the top level CMakeLists.txt file for this
 // project
-CMAKE_HOME_DIRECTORY:INTERNAL=/workspaces/Real_Madrid_Robocup/imu
+CMAKE_HOME_DIRECTORY:INTERNAL=/workspaces/Real_Madrid_Robocup
 //number of local generators
 CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=1
 //Path to CMake installation.
