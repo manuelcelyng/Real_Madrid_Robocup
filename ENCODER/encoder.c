@@ -21,8 +21,8 @@ __pid_i i_pid = {0};
 uint8_t previousQuadrantNumber = 0;
 uint64_t numberTurns = 0;
 // for total angle calculated
-double totalAngle = 0; // for obtain total angle
-
+//double totalAngle = 0; // for obtain total angle
+double correctedAngle= 0;
 
 const uint8_t STATUS = ENCODER_STATUS;
 const uint8_t RAWANGLE_H = ENCODER_RAWANGLE_H;
@@ -149,7 +149,7 @@ void obtainAngle(i2c_inst_t * a, double startAngle){
     // 0000000011111111[1]  -> encoder send us bits 0:7   // TOTAL 12 BITS INFORMATION
     uint8_t buffer[2];  // buffer[0] guarda los más significativos, y buffer[1] guarda los menos significativos.
     _uint_16_t aux;
-    double correctedAngle;
+
 
     
     // info de los registros y los estados del enconder. 
@@ -211,9 +211,10 @@ void obtainAngle(i2c_inst_t * a, double startAngle){
 
    }
 
-   totalAngle = ((double)(numberTurns)*360) + correctedAngle;
+    // NO USO TOTAL ANGLE, DADO QUE PUEDO CALCULARLO DE UNA MANERA MAS EFECTIVA
+   //totalAngle = ((double)(numberTurns)*360) + correctedAngle;
 
-   totalAngle =  (totalAngle*3.141592)/180; // radianes
+   //totalAngle =  (totalAngle*3.141592)/180; // radianes
 
     // printf("total angle %f\n", totalAngle);
 
@@ -234,26 +235,61 @@ void calcularControlPID(){
     // for one motor
     error =  speed.angular_1 - speed_desired.desired_1; // err 1
     i_pid.i_1 = i_pid.i_1 + Ki*error;
-    pid.PID_1 = (Kp*error) + i_pid.i_1 +  (error-(prev_error.error_1))*2; // se multiplica por 2 porque el tiempo es de 500milis entre dos errores calculados
+    pid.PID_1 = (Kp*error) + i_pid.i_1 +  (error-(prev_error.error_1))*total_time; // se multiplica por 2 porque el tiempo es de 500milis entre dos errores calculados
     prev_error.error_1 = error;
+
+    if(pid.PID_1>maxAngularSpeed ){
+        pid.PID_1 = maxAngularSpeed;
+    }else if (pid.PID_1<-maxAngularSpeed)
+    {
+        pid.PID_1  = -maxAngularSpeed;
+    }
+    pid.PID_1 = (pid.PID_1/4); // considerando que la velocidad deseada es maximo 400 rad/s y lo mapeamos entre 0 y 100
+   
 
     // for second motor
     error  =  speed.angular_2 - speed_desired.desired_2; // err 2
     i_pid.i_2 = i_pid.i_2 + Ki*error;
-    pid.PID_2 = (Kp*error) + i_pid.i_2 +  (error-(prev_error.error_2))*2; // se multiplica por 2 porque el tiempo es de 500milis entre dos errores calculados
+    pid.PID_2 = (Kp*error) + i_pid.i_2 +  (error-(prev_error.error_2))*total_time; // se multiplica por 2 porque el tiempo es de 500milis entre dos errores calculados
     prev_error.error_2 = error;
+    if(pid.PID_2>maxAngularSpeed ){
+        pid.PID_2 = maxAngularSpeed;
+    }else if (pid.PID_2<-maxAngularSpeed)
+    {
+        pid.PID_2  = -maxAngularSpeed;
+    }
+    pid.PID_2 = (pid.PID_2/4); // considerando que la velocidad deseada es maximo 400 rad/s
 
     // for three motor
     error     =  speed.angular_3 - speed_desired.desired_3; // err 3
     i_pid.i_3 = i_pid.i_3 + Ki*error;
-    pid.PID_3 = (Kp*error) +  i_pid.i_3 +  (error-(prev_error.error_3))*2; // se multiplica por 2 porque el tiempo es de 500milis entre dos errores calculados
+    pid.PID_3 = (Kp*error) +  i_pid.i_3 +  (error-(prev_error.error_3))*total_time; // se multiplica por 2 porque el tiempo es de 500milis entre dos errores calculados
     prev_error.error_3 = error;
+
+    // if for limit the PID maxAngularSpeed - remenber DUTY = DUTY + PID where  500<DUTY<1000
+    if(pid.PID_3>maxAngularSpeed ){
+        pid.PID_3 = maxAngularSpeed;
+    }else if (pid.PID_3<-maxAngularSpeed)
+    {
+        pid.PID_3  = -maxAngularSpeed;
+    }
+    pid.PID_3 = (pid.PID_3/4); // considerando que la velocidad deseada es maximo 400 rad/s
 
     // for four motor
     error     =  speed.angular_4 - speed_desired.desired_4; // err 4
     i_pid.i_4 = i_pid.i_4 + Ki*error;
-    pid.PID_4 = (Kp*error) + i_pid.i_4 +  (error-(prev_error.error_4))*2; // se multiplica por 2 porque el tiempo es de 500milis entre dos errores calculados
+    pid.PID_4 = (Kp*error) + i_pid.i_4 +  (error-(prev_error.error_4))*total_time; // se multiplica por 2 porque el tiempo es de 500milis entre dos errores calculados
     prev_error.error_4 = error;
+    if(pid.PID_4 > maxAngularSpeed ){
+        pid.PID_4 = maxAngularSpeed;
+    }else if (pid.PID_4 < -maxAngularSpeed)
+    {
+        pid.PID_4 = -maxAngularSpeed;
+    }
+    pid.PID_4 = (pid.PID_4/4); // considerando que la velocidad deseada es maximo 400 rad/s
+
+
+    // Aqui va la logica para implementar el duty
 
 
 }
@@ -262,13 +298,12 @@ void calcularControlPID(){
 int main() {
     stdio_init_all();
     __angle startAngle; // struct with all start angles
-    __speed angularSpeed;
     uint8_t encoder = 0;
     // measure the time in microseconds with function time_us_64()
     uint64_t current_micros = 0;
     uint64_t previous_micros = 0;
     uint64_t ayudamedios = 0;
-    //
+    
     sleep_ms(5000);
     initI2C(); // initialize I2C, pins are defined in encoder.h
     checkMagnetPresent(); // block until magnet is found in required state for all encoders, afte it , i2c encoders 2 and 4 are active
@@ -276,22 +311,22 @@ int main() {
     // Initialize start angle for each one encoder.
     // First encoder after checkmagnegPresent is ENCODER_2 that is conected to i2c0
     obtainAngle(i2c0,0); // angle for starting
-    startAngle.startAngle_2  =  (totalAngle*180)/3.141592; // save the angle in grades, its necessary in function obtainAngle
+    startAngle.startAngle_2  =  correctedAngle; //(totalAngle*180)/3.141592; // save the angle in grades, its necessary in function obtainAngle
     switchI2c(ENCODER_I2C_SDA_PIN_1, ENCODER_I2C_SCL_PIN_1, ENCODER_I2C_SDA_PIN_2 , ENCODER_I2C_SCL_PIN_2); // Enable encoder 1 i2c and disable encoder 2 i2c
     obtainAngle(i2c0,0); // angle for starting
-    startAngle.startAngle_1  =  (totalAngle*180)/3.141592;
+    startAngle.startAngle_1  = correctedAngle; // (totalAngle*180)/3.141592;
     // Four encoder after checkmagnaegPreset is ENCODER_4 that is conected to i2c1
     obtainAngle(i2c1,0); // angle for starting
-    startAngle.startAngle_4  =  (totalAngle*180)/3.141592;
+    startAngle.startAngle_4  = correctedAngle; // (totalAngle*180)/3.141592;
     switchI2c(ENCODER_I2C_SDA_PIN_3, ENCODER_I2C_SCL_PIN_3, ENCODER_I2C_SDA_PIN_4 , ENCODER_I2C_SCL_PIN_4); // Enable encoder 3 i2c and disable encoder 4 i2c
     obtainAngle(i2c1,0);
-    startAngle.startAngle_3  =  (totalAngle*180)/3.141592;
+    startAngle.startAngle_3  = correctedAngle; // (totalAngle*180)/3.141592;
 
     sleep_ms(5000); // sleep 5 ms previo a calcular las velocidades angulares.
 
     while(true){
         current_micros  = time_us_64();
-        if(((current_micros - ayudamedios)) >= 1500){
+        if(((current_micros - ayudamedios)) >= sampling_time){
             ayudamedios = current_micros;
 
             switch (encoder){
@@ -313,28 +348,28 @@ int main() {
         }
 
 
-        if((current_micros - previous_micros) >= 125000){
+        if((current_micros - previous_micros) >= timeWindow_u){
             // printf("velocidad angular: %f\n", angulo_inicial);
             printf("v: %" PRId64 "\n", numberTurns);
-            printf("vel: %f \n", totalAngle); 
+            printf("vel: %f \n", toRad(correctedAngle, numberTurns)*inv_timeWindow_s); 
             switch (encoder)
             {
                 case 0:
-                    angularSpeed.angular_1 = totalAngle*8; // angular speed
+                    speed.angular_1 = toRad(correctedAngle, numberTurns)*inv_timeWindow_s; // angular speed
                     encoder++;
                     break;
                 case 1:
                     switchI2c(ENCODER_I2C_SDA_PIN_2, ENCODER_I2C_SCL_PIN_2, ENCODER_I2C_SDA_PIN_1 , ENCODER_I2C_SCL_PIN_1);
-                    angularSpeed.angular_3 = totalAngle*8; // angular speed
+                    speed.angular_3 = toRad(correctedAngle, numberTurns)*inv_timeWindow_s; // angular speed
                     encoder++;
                     break;
                 case 2:
                     switchI2c(ENCODER_I2C_SDA_PIN_4, ENCODER_I2C_SCL_PIN_4, ENCODER_I2C_SDA_PIN_3 , ENCODER_I2C_SCL_PIN_3);
-                    angularSpeed.angular_2 = totalAngle*8; // angular speed
+                    speed.angular_2 = toRad(correctedAngle, numberTurns)*inv_timeWindow_s; // angular speed
                     encoder++;
                     break;
                 case 3:
-                    angularSpeed.angular_4 = totalAngle*8; // angular speed
+                    speed.angular_4 = toRad(correctedAngle, numberTurns)*inv_timeWindow_s; // angular speed
                     switchI2c(ENCODER_I2C_SDA_PIN_1, ENCODER_I2C_SCL_PIN_1, ENCODER_I2C_SDA_PIN_2 , ENCODER_I2C_SCL_PIN_2);
                     switchI2c(ENCODER_I2C_SDA_PIN_3, ENCODER_I2C_SCL_PIN_3, ENCODER_I2C_SDA_PIN_4 , ENCODER_I2C_SCL_PIN_4);
                     calcularControlPID();
@@ -351,6 +386,8 @@ int main() {
             previous_micros =  current_micros;
             ayudamedios = current_micros;
         }      
+
+        // __wfe();
     } // end of while(1)
 
 

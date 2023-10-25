@@ -15,6 +15,6 @@ add_executable(encoder
 
 pico_enable_stdio_usb(encoder 1)
 
-target_link_libraries(encoder pico_stdlib hardware_i2c)
+target_link_libraries(encoder pico_stdlib hardware_i2c hardware_sync)
 
 pico_add_extra_outputs(encoder)

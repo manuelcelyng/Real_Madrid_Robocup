@@ -14,10 +14,21 @@
 #define ENCODER_I2C_SCL_PIN_4 27 // PIN 32 - pin 9  counting from USB
 
 // CONSTATS DIRECTION OF SLAVE IN ENCODER AND REGISTERS FOR READ OR WRITE
-#define ENCODER_ADDR 0X36 
-#define ENCODER_STATUS 0x0B
-#define ENCODER_RAWANGLE_H 0X0C // define constans for 11:8 bits information
-#define ENCODER_RAWANGLE_L 0x0D  // define constants for 7:0 bits information
+#define ENCODER_ADDR 0X36       // address of i2c slave in the encoder.
+#define ENCODER_STATUS 0x0B     // address to read the state of the magnetic field and see if it is correct
+#define ENCODER_RAWANGLE_H 0X0C // address. define constans for 11:8 bits information
+#define ENCODER_RAWANGLE_L 0x0D  //address.  define constants for 7:0 bits information
+
+//Limites of PID -  Angular speed and some params
+#define maxAngularSpeed 400
+
+
+// TO CALCULATE FROM DEGREES TO RADIANS AND TIME WINDOWS TO CALCULATE ANGULAR VELOCITY
+#define total_time 10
+#define sampling_time 5000  // Time in microseconds. to sample the encoder angle.
+#define timeWindow_u 25000 // Time in microseconds. Time window to calculate the angular velocity of an encoder.
+#define inv_timeWindow_s 40  // [s^-1]The inverse of timeWindow_u. Pass timeWindow_u to seconds and do 1/timeWindow_u.
+#define toRad(angle,turns) ((turns*2  + angle/180)*3.141592) // Calculate the radians taking into account the turns and the last angle given by the encoder.
 
 // VARIABLES WITH TYPE NECCESARY FOR USE IN I2C HARDWARE API
 const uint8_t STATUS;
@@ -72,7 +83,6 @@ typedef struct
     float i_3;
     float i_4;
 }__pid_i;
-
 
 // previous error for PID
 typedef struct 
