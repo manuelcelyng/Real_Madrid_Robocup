@@ -27,6 +27,8 @@
     "cstdint": "c",
     "shared_functions.h": "c",
     "sharedfunctions.h": "c",
-    "stdlib.h": "c"
+    "stdlib.h": "c",
+    "i2c.h": "c",
+    "encoderv2.h": "c"
   }
 }

@@ -6,8 +6,11 @@
 
 // include mis propios .h
 #include "motor_control.h" // .h definicion de variables y metodos para el control del motor
-#include "bluetooth.h" // .h definicion de todo lo relacionado a la comunicación bluetooth
+#include "encoderv2.h"
 #include "sharedfunctions.h" // es el que comparte funciones con el codigo bluetooth.c
+
+DutyCycle duty = {750,750,750,750};
+
 
 void initPWM(uint8_t gpio, uint16_t frec){
     uint slice = pwm_gpio_to_slice_num(gpio);  // Get the value of the slice the gpio belongs to
@@ -35,6 +38,7 @@ void initMotor(uint8_t PWM_GPIO){
     pwm_set_chan_level(pwm_gpio_to_slice_num(PWM_GPIO), pwm_gpio_to_channel(PWM_GPIO), 750); 
 }
 
+// la que llama el bluetooth
 void moverMotor(char* buffer){
     if(buffer[0] =='z'){
         //printf("ENTRO %s", buffer[0]);
@@ -69,9 +73,59 @@ void moverMotor(char* buffer){
     }
 }
 
+void setDutyxPID(int one_D, int two_D, int three_D, int four_D){
+    pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, one_D); // RUEDA 1
+    pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, two_D); // RUEDA 2
+    pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, three_D); // RUEDA 3 
+    pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, four_D);   // RUEDA 4
+}
 
 
+void initMotorControl(){
+    initPWM(PWM_GPIO_MOTOR_ONE , FRECUENCY_ALL_PWM_MOTORS);
+    if(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_ONE)!= pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_TWO)){
+        initPWM(PWM_GPIO_MOTOR_TWO , FRECUENCY_ALL_PWM_MOTORS);
+    }
+    initPWM(PWM_GPIO_MOTOR_THREE , FRECUENCY_ALL_PWM_MOTORS);
+    if(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_ONE)!= pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_TWO)){
+        initPWM(PWM_GPIO_MOTOR_FOUR , FRECUENCY_ALL_PWM_MOTORS);
+    }
 
+    //All motors are initialized one by one. Takes 2 seconds per motor
+    initMotor(PWM_GPIO_MOTOR_ONE);
+    initMotor(PWM_GPIO_MOTOR_TWO);
+    initMotor(PWM_GPIO_MOTOR_THREE);
+    initMotor(PWM_GPIO_MOTOR_FOUR);
+
+    
+}
+
+void adjustPWM(){
+    
+    // pid[0] -> RUEDA 1
+    // pid[1] -> RUEDA 3
+    // pid[2] -> RUEDA 2  
+    // pid[3] -> RUEDA 4 
+    for(int i = 0 ; i<4; i++){
+        duty[i] =  duty[i] + (int)pid[i];
+        if (duty[i] > MAX_DUTY)
+        {
+            duty[i] = MAX_DUTY;
+        }else if (duty[i]< MIN_DUTY)
+        {
+            duty[i] = MIN_DUTY;
+        }        
+    }
+    
+    //printf("pwm 1: %d\n", duty[0]);
+    //printf("pwm 2: %d\n", duty[1]);
+    //printf("pwm 3: %d\n", duty[2]);
+    //printf("pwm 4: %d\n", duty[3]);
+    setDutyxPID(duty[0], duty[2], duty[1], duty[3]);
+    
+}
+
+/*
 int main(){
     //stdio_init_all();
     // initialize all pwm channel and slice depend of motors pin selected.
@@ -104,5 +158,5 @@ int main(){
         
      }
 }
-    
+*/
 

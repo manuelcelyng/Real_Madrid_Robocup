@@ -10,8 +10,11 @@ project(motor_control)
 pico_sdk_init()
 
 add_executable(motor_control
-motor_control.c
+main.c
 bluetooth.c
+control.c
+encoderv2.c
+motor_control.c
 )
 
 pico_enable_stdio_uart(motor_control 1)
@@ -19,6 +22,6 @@ pico_enable_stdio_usb(motor_control 1)
 
 
 
-target_link_libraries(motor_control pico_stdlib pico_multicore hardware_pwm hardware_uart hardware_sync hardware_resets)
+target_link_libraries(motor_control pico_stdlib pico_sync pico_multicore hardware_pwm hardware_uart hardware_sync hardware_resets hardware_i2c)
 
 pico_add_extra_outputs(motor_control)
