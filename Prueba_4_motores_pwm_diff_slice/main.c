@@ -9,7 +9,7 @@
 #include "motor_control.h"
 #include "control.h"
 #include "sharedfunctions.h"
-#include "encoderv2.h"
+#include "wheel_control.h"
 #include "bluetooth.h" // .h definicion de todo lo relacionado a la comunicación bluetooth
 
 
@@ -102,6 +102,8 @@ int main(){
     uint64_t offset_time = time_us_64();
     while (1) {
         tight_loop_contents();
+
+        sem_acquire_blocking(&sem1); // Adquirir el semáforo sem1
         float t_i = (time_us_64()-offset_time)*1e-6;
 
         // Calculate qd
@@ -150,7 +152,7 @@ int main(){
         desiredSpeed[1] = dteta[2][0];  // RUEDA 3
         desiredSpeed[2] = dteta[1][0];  // RUEDA 2 
         desiredSpeed[3] = dteta[3][0]; // RUEDA 4
-        sem_acquire_blocking(&sem1); // Adquirir el semáforo sem1
+        
         adjustPWM();
         sem_release(&sem2);
      }
@@ -163,10 +165,10 @@ int main(){
 void main2() {
 
     i2c_inst_t *selI2c;
-    desiredSpeed[0] = 200;  // RUEDA 1
-    desiredSpeed[1] = -200;  // RUEDA 3
-    desiredSpeed[2] = 0;  // RUEDA 2 
-    desiredSpeed[3] = 0; // RUEDA 4
+    // desiredSpeed[0] = 200;  // RUEDA 1
+    // desiredSpeed[1] = -200;  // RUEDA 3
+    // desiredSpeed[2] = 0;  // RUEDA 2 
+    // desiredSpeed[3] = 0; // RUEDA 4
 
     AngleData startAngle; // struct with all start angles
     uint8_t encoder = 0;
@@ -180,7 +182,6 @@ void main2() {
     
 
     while(true){
-
         sem_acquire_blocking(&sem2); // Adquirir el semáforo sem2
         for(int i = 0 ; i<4; i++){
 
@@ -188,18 +189,14 @@ void main2() {
             {
             case 0:
                 selI2c =  i2c0;
-              
                 break;
             case 1:
                 switchI2c(ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2, ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0);
                 selI2c =  i2c1;
-              
-                
                 break;
             case 2:
                 switchI2c(ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3, ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1);
                 selI2c =  i2c0;
-                
             case 3: 
                 selI2c =  i2c1;
                 break;
@@ -209,8 +206,6 @@ void main2() {
             numberTurns = 0;
             flagHelp  = 0;
             previousQuadrantNumber = 0;
-            
-
             // Inicializo los tiempos
             previous_micros =  time_us_64();
             ayudamedios = time_us_64();
@@ -224,16 +219,12 @@ void main2() {
                 
                 if(((current_micros - ayudamedios)) >= SAMPLING_TIME){
                     ayudamedios = current_micros;
-                    previousAngle =  correctedAngle;
-                    obtainAngle(selI2c, startAngle[i]); 
-                 
-                   
+                    previousAngle = correctedAngle;
+                    obtainAngle(selI2c, startAngle[i]);   
                 }
                 
                 if((current_micros - previous_micros) >= TIME_WINDOW_US){
                     // Garantizar que cuando no se está moviendo el robot, el angulo calculado sea exactamente 0
-                    // printf("correct  : %f\n", correctedAngle);
-                    // printf("previous : %f\n", previousAngle);
                     previousAngle =  correctedAngle-previousAngle;
                     if(previousAngle<0){
                         previousAngle= -1*previousAngle;
@@ -241,39 +232,23 @@ void main2() {
                     if( previousAngle<=1   ||  (previousAngle)>358 ){
                         speedData[i] = 0;
                     }else{
-                        // switch (i)
-                        // {
-                        // case 0:
-                            if(duty[i]>750){
-                                correctedAngle =  360-correctedAngle;
-                                speedData[i] = -1*((double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S));
-                            }else{
-                                speedData[i] = (double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S);
-                            }
-                            // printf("angle %f\n", correctedAngle );
-                            // printf("speed: %f\n", speedData[i]);
-                            // break;
                         
-                        // default:
-                        //     speedData[i] = 0; //(double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S); // angular speed  
-                        //     break;
-                        // } 
-
+                        if(duty[i]>750){
+                            correctedAngle =  360-correctedAngle;
+                            speedData[i] = -1*((double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S));
+                        }else{
+                            speedData[i] = (double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S);
+                        }
                     }
                     // out of while and continue with for with another encoder
                     break;
-                } 
-
-                
-                
-
+                }
             }
             
             
         }
         switchI2c(ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0, ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2);
         switchI2c(ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1, ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3);
-        
         
         calcularControlPID();  
 

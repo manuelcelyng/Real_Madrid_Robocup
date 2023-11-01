@@ -6,7 +6,7 @@
 
 // include mis propios .h
 #include "motor_control.h" // .h definicion de variables y metodos para el control del motor
-#include "encoderv2.h"
+#include "wheel_control.h"
 #include "sharedfunctions.h" // es el que comparte funciones con el codigo bluetooth.c
 
 DutyCycle duty = {750,750,750,750};
@@ -116,47 +116,7 @@ void adjustPWM(){
             duty[i] = MIN_DUTY;
         }        
     }
-    
-    //printf("pwm 1: %d\n", duty[0]);
-    //printf("pwm 2: %d\n", duty[1]);
-    //printf("pwm 3: %d\n", duty[2]);
-    //printf("pwm 4: %d\n", duty[3]);
+  
     setDutyxPID(duty[0], duty[2], duty[1], duty[3]);
     
 }
-
-/*
-int main(){
-    //stdio_init_all();
-    // initialize all pwm channel and slice depend of motors pin selected.
-
-    
-    initPWM(PWM_GPIO_MOTOR_ONE , FRECUENCY_ALL_PWM_MOTORS);
-    if(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_ONE)!= pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_TWO)){
-        initPWM(PWM_GPIO_MOTOR_TWO , FRECUENCY_ALL_PWM_MOTORS);
-    }
-    initPWM(PWM_GPIO_MOTOR_THREE , FRECUENCY_ALL_PWM_MOTORS);
-    if(pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_ONE)!= pwm_gpio_to_slice_num(PWM_GPIO_MOTOR_TWO)){
-        initPWM(PWM_GPIO_MOTOR_FOUR , FRECUENCY_ALL_PWM_MOTORS);
-    }
-
-    //All motors are initialized one by one. Takes 2 seconds per motor
-    initMotor(PWM_GPIO_MOTOR_ONE);
-    initMotor(PWM_GPIO_MOTOR_TWO);
-    initMotor(PWM_GPIO_MOTOR_THREE);
-    initMotor(PWM_GPIO_MOTOR_FOUR);
-
-    
-
-    sleep_ms(5000);
-    //Init comunication 
-    initUart(GPIO_UART_TX, GPIO_UART_RX);
-    int duty = 780;
-    int flag = 1;
-    while (1) {
-        tight_loop_contents();
-        
-     }
-}
-*/
-

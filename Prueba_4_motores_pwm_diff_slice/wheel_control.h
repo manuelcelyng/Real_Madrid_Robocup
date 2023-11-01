@@ -2,27 +2,42 @@
 #define ENCODER_HW
 #include "hardware/i2c.h"
 #include <inttypes.h> // for pring uint64_t or another type
-extern uint8_t previousQuadrantNumber;
-extern int numberTurns;
-extern double correctedAngle;
-extern int flagHelp;
+
 
 // Constantes de pines GPIO
 // #define _ENCODER_I2C_SDA_PINS {12, 14, 20, 18}  // Pines SDA de I2C
 // #define _ENCODER_I2C_SCL_PINS {13, 15, 21, 19}  // Pines SCL de I2C
 
 // Constantes para control P, PI o PID
-#define KP 0.05
-#define KI 0.0003
-#define KD 0.002
+//RUEDA 1
+#define KP_0 0.05
+#define KI_0 0.0003
+#define KD_0 0.002
+//RUEDA 3
+#define KP_1 0.05
+#define KI_1 0.0003
+#define KD_1 0.002
+//RUEDA 2
+#define KP_2 0.05
+#define KI_2 0.0003
+#define KD_2 0.002
+// RUEDA 4
+#define KP_3 0.05
+#define KI_3 0.0003
+#define KD_3 0.002
+// defines 3 vectors that contain all constants of pid for each wheel
+typedef double ConstantsP[4];
+typedef double ConstantsI[4];
+typedef double ConstantsD[4];
 
-// CONSTANT PINS GPIO
+
+// CONSTANT PINS GPIO FOR I2C
 /*
  // ORDEN RUEDAS
-    1 |  2
+     1 | 2     <---- I2C_0
     ---|---
-    4  | 3
-    */
+     4 | 3     <---- I2C_1
+*/
 // FOR I2C 0   -  RUEDA 1
 #define ENCODER_I2C_SDA_PIN_0 12  // PIN 16 RUEDA 1 I2C0
 #define ENCODER_I2C_SCL_PIN_0 13  // PIN 17 RUEDA 1 I2C0
@@ -42,27 +57,30 @@ extern int flagHelp;
 #define ENCODER_STATUS 0x0B      // Dirección para leer el estado del campo magnético
 #define ENCODER_RAWANGLE_H 0x0C  // Dirección para los bits 11:8 de información
 #define ENCODER_RAWANGLE_L 0x0D  // Dirección para los bits 7:0 de información
-
-// Límites del PID, velocidad angular máxima y algunos parámetros
-#define MAX_ANGULAR_SPEED 400
-#define TOTAL_TIME 10 // Para el PID 1/T  donde T es el tiempo total entre errores calculados-> T = TIME_WINDOW_US*4
-
-// Conversión de grados a radianes y ventana de tiempo para calcular la velocidad angular
-#define SAMPLING_TIME 800 // Tiempo en microsegundos para muestrear el ángulo del encoder
-#define TIME_WINDOW_US 25000  // Ventana de tiempo en microsegundos para calcular la velocidad angular de un solo encoder
-#define INV_TIME_WINDOW_S 40  // [s^-1] Inverso de TIME_WINDOW_US, convertido a segundos y calculado como 1 / TIME_WINDOW_US
-#define TO_RAD(angle, turns) (((turns * 2.0) + (angle / 180.0)) * 3.141592)
-
 // Variables con tipos necesarios para el uso en la API de hardware I2C
 extern const uint8_t STATUS;
 extern const uint8_t RAWANGLE_H;
 extern const uint8_t RAWANGLE_L;
+
+// Límites del PID, velocidad angular máxima y algunos parámetros
+#define MAX_ANGULAR_SPEED 400
+#define TOTAL_TIME 10 // Para el PID 1/T  donde T es el tiempo total entre errores calculados-> T = TIME_WINDOW_US*4
+// Conversión de grados a radianes y ventana de tiempo para calcular la velocidad angular
+#define SAMPLING_TIME 800 // Time in microseconds to sample encoder angle
+#define TIME_WINDOW_US 25000  // Time window in microseconds for calculating the angular velocity of a single encoder
+#define INV_TIME_WINDOW_S 40  // [s^-1] Inverso de TIME_WINDOW_US, convertido a segundos y calculado como 1 / TIME_WINDOW_US
+#define TO_RAD(angle, turns) (((turns * 2.0) + (angle / 180.0)) * 3.141592) // convert degrees to radians
 
 // for calculate angle
  typedef union{
         uint16_t rawAngle;
         uint16_t quadrantNumber;
 }_uint_16_t;
+
+extern uint8_t previousQuadrantNumber;
+extern int numberTurns;
+extern double correctedAngle;
+extern int flagHelp;
 
 /* INFORMACION IMPORTANTE
   // En todos los arreglos a continuación hay un orden por llanta .
@@ -74,7 +92,6 @@ extern const uint8_t RAWANGLE_L;
 
 // Para ángulos iniciales
 typedef double AngleData[4];
-
 // Para velocidades angulares
 typedef double SpeedData[4];
 // Para velocidades angulares deseadas
@@ -85,7 +102,6 @@ typedef double PIDData[4];
 typedef double PIDIntegralData[4];
 // Para errores previos de PID
 typedef double PIDErrorData[4];
-
 
 // Declaro las variables como externas para verlas desde el main
 extern SpeedData speedData;

@@ -5,7 +5,7 @@
 #include "hardware/i2c.h"
 #include <inttypes.h>
 // include my own .h
-#include "encoderv2.h"
+#include "wheel_control.h"
 
 
 // All struct for PID control
@@ -15,16 +15,26 @@ PIDData pid = {0.0, 0.0, 0.0, 0.0};
 PIDIntegralData pidIntegral = {0.0, 0.0, 0.0, 0.0};
 PIDErrorData pidPreviousError = {0.0, 0.0, 0.0, 0.0};
 
-
+// constants of each one wheel 
+/*   Positions
+0 -> Rueda 1
+1 -> Rueda 3
+2 -> Rueda 2
+3 -> Rueda 4
+*/
+ConstantsP constansP = {KP_0, KP_1, KP_2, KP_3};
+ConstantsI constansI = {KI_0, KI_1, KI_2, KI_3};
+ConstantsD constansD = {KD_0, KD_1, KD_2, KD_3};
 
 // for quadrant
 uint8_t previousQuadrantNumber = 0;
 int numberTurns = 0;
 int flagHelp = 0;
+
 // for total angle calculated
-//double totalAngle = 0; // for obtain total angle
 double correctedAngle= 0;
 
+// addres of registers in the encoder
 const uint8_t STATUS = ENCODER_STATUS;
 const uint8_t RAWANGLE_H = ENCODER_RAWANGLE_H;
 const uint8_t RAWANGLE_L = ENCODER_RAWANGLE_L;
@@ -148,6 +158,8 @@ void checkMagnetPresent(){
 
 }
 
+
+// The main function for calculate angule in the wheel
 void obtainAngle(i2c_inst_t * a, double startAngle){
 
     // buffer[0] 0000000000001111  -> encoder send us bits 8:11
@@ -176,8 +188,6 @@ void obtainAngle(i2c_inst_t * a, double startAngle){
     if(correctedAngle<0){ 
         correctedAngle = correctedAngle + 360;
     }  
-
-
     // quadrant for turns 
     /*
     //quadrants
@@ -185,31 +195,16 @@ void obtainAngle(i2c_inst_t * a, double startAngle){
     ---|---
     3  |  2
     */
-
-   //Quadrant 1
-//    if(correctedAngle>=0 && correctedAngle <= 90){
-//         aux.quadrantNumber = 1;
-        
-//    }
-//    if(correctedAngle>90 && correctedAngle <= 180){
-//         aux.quadrantNumber = 2;
-//         flagHelp++;
-//    }
-//    if(correctedAngle>180 && correctedAngle <= 270){
-//         aux.quadrantNumber = 3;
-//         flagHelp++;
-//    }
-
-//    if(correctedAngle>270 && correctedAngle < 360){
-//         aux.quadrantNumber = 4;
-//    }
-
+   
+    // define the quadrant
     aux.quadrantNumber = (int) (correctedAngle/90) + 1;
 
+    // verify for count the turn and not have false counts
     if(aux.quadrantNumber ==2 || aux.quadrantNumber ==3){
          flagHelp++;
     }
 
+    // count the turn
     if(aux.quadrantNumber != previousQuadrantNumber){
         if ((aux.quadrantNumber == 1 && previousQuadrantNumber == 4 && flagHelp) ||
             (aux.quadrantNumber == 4 && previousQuadrantNumber == 1 && flagHelp)) {
@@ -217,17 +212,7 @@ void obtainAngle(i2c_inst_t * a, double startAngle){
         }
 
         previousQuadrantNumber = aux.quadrantNumber;
-
-
     }
-
-    // NO USO TOTAL ANGLE, DADO QUE PUEDO CALCULARLO DE UNA MANERA MAS EFECTIVA
-   //totalAngle = ((double)(numberTurns)*360) + correctedAngle;
-
-   //totalAngle =  (totalAngle*3.141592)/180; // radianes
-
-    // printf("total angle %f\n", totalAngle);
-
 }
 
 void switchI2c(uint sda_enable, uint scl_enable, uint sda_disable , uint scl_disable){
@@ -239,119 +224,27 @@ void switchI2c(uint sda_enable, uint scl_enable, uint sda_disable , uint scl_dis
     gpio_set_function(scl_disable, GPIO_FUNC_NULL);
 }
 
-
+//calculates the control of each wheel, and save their values on the structure
 void calcularControlPID(){
     double error = 0; 
     // for all motors
     for(int i=0 ; i<4 ; i++){
         error =  speedData[i] - desiredSpeed[i]; 
-        pidIntegral[i] = pidIntegral[i] + KI*error;
-        pid[i] = (KP*error) + pidIntegral[i] +  KD*((error-(pidPreviousError[i]))*TOTAL_TIME); // se multiplica por 2 porque el tiempo es de 500milis entre dos errores calculados
+        pidIntegral[i] = pidIntegral[i] + constansI[i]*error;
+        pid[i] = (constansP[i]*error) + pidIntegral[i] +  constansD[i]*((error-(pidPreviousError[i]))*TOTAL_TIME);
         pidPreviousError[i] = error;
 
+        // if for contro max speed angular in each wheel
         if(pid[i] > MAX_ANGULAR_SPEED ){
             pid[i] = MAX_ANGULAR_SPEED;
         }else if (pid[i]< -MAX_ANGULAR_SPEED)
         {
             pid[i]  = -MAX_ANGULAR_SPEED;
         }
+        // divided by 4 taking into account the max speed -> only use the 25% of PID calculated
         pid[i] = (pid[i]/4); // considerando que la velocidad deseada es maximo 400 rad/s y lo mapeamos entre 0 y 100
     }
     
 }
 
-
-
-
-
-/*
-int main() {
-    stdio_init_all();
-    AngleData startAngle; // struct with all start angles
-    uint8_t encoder = 0;
-    // measure the time in microseconds with function time_us_64()
-    uint64_t current_micros = 0;
-    uint64_t previous_micros = 0;
-    uint64_t ayudamedios = 0;
-    
-    sleep_ms(5000);
-    initI2C(); // initialize I2C, pins are defined in encoder.h
-    checkMagnetPresent(); // block until magnet is found in required state for all encoders, afte it , i2c encoders 2 and 4 are active
-    
-    // Initialize start angle for each one encoder.
-    // First encoder after checkmagnegPresent is ENCODER_2 that is conected to i2c0
-    obtainAngle(i2c0,0); // angle for starting - RUEDA 2
-    startAngle[2]  =  correctedAngle; //(totalAngle*180)/3.141592; // save the angle in grades, its necessary in function obtainAngle
-    switchI2c(ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0, ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2); // Enable encoder 1 i2c and disable encoder 2 i2c
-    obtainAngle(i2c0,0); // angle for starting - RUEDA 1
-    startAngle[0]  = correctedAngle; // (totalAngle*180)/3.141592;
-
-    // Four encoder after checkmagnaegPreset is ENCODER_4 that is conected to i2c1
-    obtainAngle(i2c1,0); // angle for starting - RUEDA 4
-    startAngle[3]  = correctedAngle; // (totalAngle*180)/3.141592;
-    switchI2c(ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1, ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3); // Enable encoder 3 i2c and disable encoder 4 i2c
-    obtainAngle(i2c1,0); // angle for starting - RUEDA 3
-    startAngle[1]  = correctedAngle; // (totalAngle*180)/3.141592;
-
-    sleep_ms(5000); // sleep 5 ms previo a calcular las velocidades angulares.
-
-    while(true){
-
-        
-
-        for(int i = 0 ; i<4; i++){
-
-            switch(i)
-            {
-            case 1:
-                switchI2c(ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2, ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0);
-                break;
-            case 2:
-                switchI2c(ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3, ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1);
-            }  
-
-            numberTurns = 0;
-            previousQuadrantNumber = 0;
-            current_micros = time_us_64();
-            previous_micros =  current_micros;
-            ayudamedios = current_micros;
-
-            while (true)
-            {
-                current_micros  = time_us_64();
-
-                if(((current_micros - ayudamedios)) >= SAMPLING_TIME){
-                    ayudamedios = current_micros;
-
-                    if(i==0 || i == 2)
-                        obtainAngle(i2c0, startAngle[i]);
-                    else 
-                        obtainAngle(i2c1, startAngle[i]);
-                }
-
-                if((current_micros - previous_micros) >= TIME_WINDOW_US){
-                    // printf("velocidad angular: %f\n", angulo_inicial);
-                    printf("v: %" PRId64 "\n", numberTurns);
-                    printf("vel: %f \n", TO_RAD(correctedAngle, numberTurns)*INV_TIME_WINDOW_S); 
-                    speedData[i] = TO_RAD(correctedAngle, numberTurns)*INV_TIME_WINDOW_S; // angular speed  
-                    break;
-                } 
-
-            }
-            
-        }
-
-        calcularControlPID();  
-        switchI2c(ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0, ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2);
-        switchI2c(ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1, ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3);
-        //__wfi(); // a mimir, y esperar un evento
-    } // end of while(1)
-
-
-        
-     
-
-    return 0;
-}
-*/
 

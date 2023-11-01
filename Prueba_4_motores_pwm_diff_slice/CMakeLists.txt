@@ -13,8 +13,8 @@ add_executable(motor_control
 main.c
 bluetooth.c
 control.c
-encoderv2.c
 motor_control.c
+wheel_control.c
 )
 
 pico_enable_stdio_uart(motor_control 1)
