@@ -13,7 +13,8 @@ SpeedData speedData = {0.0, 0.0, 0.0, 0.0};
 DesiredSpeedData desiredSpeed = {0.0, 0.0, 0.0, 0.0};
 PIDData pid = {0.0, 0.0, 0.0, 0.0};
 PIDIntegralData pidIntegral = {0.0, 0.0, 0.0, 0.0};
-PIDErrorData pidError = {0.0, 0.0, 0.0, 0.0};
+PIDErrorData pidPreviousError = {0.0, 0.0, 0.0, 0.0};
+
 
 
 // for quadrant
@@ -34,43 +35,42 @@ bool reserved_addr(uint8_t addr) {
 
 
 void initI2C(){
-    // This example will use I2C0 on the default SDA and SCL pins (GP4, GP5 on a Pico)
-   
-    i2c_init(i2c_default, 100 * 1000);
-    i2c_init(i2c1, 100 * 1000);
+    // configure with speed mode plus -> 1000kbps for i2c0 and i2c1
+    i2c_init(i2c_default, 1000 * 1000);
+    i2c_init(i2c1, 1000 * 1000);
     // configura 1 encoder y lo deja listo para el inicio de lectura.
-    gpio_set_function(ENCODER_I2C_SDA_PINS[0], GPIO_FUNC_I2C);
-    gpio_set_function(ENCODER_I2C_SCL_PINS[0], GPIO_FUNC_I2C);
+    gpio_set_function(ENCODER_I2C_SDA_PIN_0, GPIO_FUNC_I2C);
+    gpio_set_function(ENCODER_I2C_SCL_PIN_0, GPIO_FUNC_I2C);
      // coloca en pull up 
-    gpio_pull_up(ENCODER_I2C_SDA_PINS[0]);
-    gpio_pull_up(ENCODER_I2C_SCL_PINS[0]);
+    gpio_pull_up(ENCODER_I2C_SDA_PIN_0);
+    gpio_pull_up(ENCODER_I2C_SCL_PIN_0);
 
     // configura 2 encoder 
-    gpio_set_function(ENCODER_I2C_SDA_PINS[1], GPIO_FUNC_NULL);
-    gpio_set_function(ENCODER_I2C_SCL_PINS[1], GPIO_FUNC_NULL);
+    gpio_set_function(ENCODER_I2C_SDA_PIN_1, GPIO_FUNC_I2C);
+    gpio_set_function(ENCODER_I2C_SCL_PIN_1, GPIO_FUNC_I2C);
     // coloca en pull up 
-    gpio_pull_up(ENCODER_I2C_SDA_PINS[1]);
-    gpio_pull_up(ENCODER_I2C_SCL_PINS[1]);
+    gpio_pull_up(ENCODER_I2C_SDA_PIN_1);
+    gpio_pull_up(ENCODER_I2C_SCL_PIN_1);
 
      // configura 3 encoder
-    gpio_set_function(ENCODER_I2C_SDA_PINS[2], GPIO_FUNC_I2C);
-    gpio_set_function(ENCODER_I2C_SCL_PINS[2], GPIO_FUNC_I2C);
+    gpio_set_function(ENCODER_I2C_SDA_PIN_2,  GPIO_FUNC_NULL);
+    gpio_set_function(ENCODER_I2C_SCL_PIN_2,  GPIO_FUNC_NULL);
      // coloca en pull up 
-    gpio_pull_up(ENCODER_I2C_SDA_PINS[2]);
-    gpio_pull_up(ENCODER_I2C_SCL_PINS[2]);
+    gpio_pull_up(ENCODER_I2C_SDA_PIN_2);
+    gpio_pull_up(ENCODER_I2C_SCL_PIN_2);
 
     // configura 4 encoder
-    gpio_set_function(ENCODER_I2C_SDA_PINS[3], GPIO_FUNC_NULL);
-    gpio_set_function(ENCODER_I2C_SCL_PINS[3], GPIO_FUNC_NULL);
+    gpio_set_function(ENCODER_I2C_SDA_PIN_3, GPIO_FUNC_NULL);
+    gpio_set_function(ENCODER_I2C_SCL_PIN_3, GPIO_FUNC_NULL);
      // coloca en pull up 
-    gpio_pull_up(ENCODER_I2C_SDA_PINS[3]);
-    gpio_pull_up(ENCODER_I2C_SCL_PINS[3]);
+    gpio_pull_up(ENCODER_I2C_SDA_PIN_3);
+    gpio_pull_up(ENCODER_I2C_SCL_PIN_3);
 
     // Make the I2C pins available to picotool
-    bi_decl(bi_2pins_with_func(ENCODER_I2C_SDA_PINS[0],ENCODER_I2C_SCL_PINS[0], GPIO_FUNC_I2C));
-    bi_decl(bi_2pins_with_func(ENCODER_I2C_SDA_PINS[1],ENCODER_I2C_SCL_PINS[1], GPIO_FUNC_I2C));
-    bi_decl(bi_2pins_with_func(ENCODER_I2C_SDA_PINS[2],ENCODER_I2C_SCL_PINS[2], GPIO_FUNC_I2C));
-    bi_decl(bi_2pins_with_func(ENCODER_I2C_SDA_PINS[3],ENCODER_I2C_SCL_PINS[3], GPIO_FUNC_I2C));
+    bi_decl(bi_2pins_with_func(ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0, GPIO_FUNC_I2C));
+    bi_decl(bi_2pins_with_func(ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1, GPIO_FUNC_I2C));
+    bi_decl(bi_2pins_with_func(ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2, GPIO_FUNC_I2C));
+    bi_decl(bi_2pins_with_func(ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3, GPIO_FUNC_I2C));
     
 
     printf("\nI2C Bus Scan\n");
@@ -102,18 +102,18 @@ void initI2C(){
 
 // this function only is a verification of state of magnet in the all Encoders
 void checkMagnetPresent(){
-    uint8_t magnedStatus =0;
-    const uint8_t statuscoso  = 0x0b;
+    uint8_t magnedStatus = 0;
+    // const uint8_t statuscoso  = 0x0b;
 
     for(int equisde = 0 ;  equisde<4 ;  equisde++){
         magnedStatus = 0;
         switch (equisde)
         {
         case 1:
-            switchI2c(ENCODER_I2C_SDA_PINS[1],ENCODER_I2C_SCL_PINS[1], ENCODER_I2C_SDA_PINS[0],ENCODER_I2C_SCL_PINS[0]);
+            switchI2c(ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2, ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0);
             break;
-        case 3:
-             switchI2c(ENCODER_I2C_SDA_PINS[3],ENCODER_I2C_SCL_PINS[3], ENCODER_I2C_SDA_PINS[2],ENCODER_I2C_SCL_PINS[2]);
+        case 2:
+             switchI2c(ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3, ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1);
             break;
         }
 
@@ -150,8 +150,6 @@ void obtainAngle(i2c_inst_t * a, double startAngle){
     uint8_t buffer[2];  // buffer[0] guarda los más significativos, y buffer[1] guarda los menos significativos.
     _uint_16_t aux;
 
-
-    
     // info de los registros y los estados del enconder. 
     i2c_write_blocking(a, ENCODER_ADDR,&RAWANGLE_L,1, true);
     i2c_read_blocking(a, ENCODER_ADDR, &buffer[1],1,false);
@@ -234,18 +232,18 @@ void calcularControlPID(){
     double error = 0; 
     // for all motors
     for(int i=0 ; i<4 ; i++){
-        error =  speedData.angular[i] - desiredSpeed.desired[i]; 
-        pidIntegral.i[i] = pidIntegral.i[i] + KI*error;
-        pid.PID[i] = (KP*error) + pidIntegral.i[i] +  KD*((error-(pidError.previous[i]))*TOTAL_TIME); // se multiplica por 2 porque el tiempo es de 500milis entre dos errores calculados
-        pidError.previous[i] = error;
+        error =  speedData[i] - desiredSpeed[i]; 
+        pidIntegral[i] = pidIntegral[i] + KI*error;
+        pid[i] = (KP*error) + pidIntegral[i] +  KD*((error-(pidPreviousError[i]))*TOTAL_TIME); // se multiplica por 2 porque el tiempo es de 500milis entre dos errores calculados
+        pidPreviousError[i] = error;
 
-        if(pid.PID[i] > MAX_ANGULAR_SPEED ){
-            pid.PID[i] = MAX_ANGULAR_SPEED;
-        }else if (pid.PID[i]<-MAX_ANGULAR_SPEED)
+        if(pid[i] > MAX_ANGULAR_SPEED ){
+            pid[i] = MAX_ANGULAR_SPEED;
+        }else if (pid[i]<-MAX_ANGULAR_SPEED)
         {
-            pid.PID[i]  = -MAX_ANGULAR_SPEED;
+            pid[i]  = -MAX_ANGULAR_SPEED;
         }
-        pid.PID[i] = (pid.PID[i]/4); // considerando que la velocidad deseada es maximo 400 rad/s y lo mapeamos entre 0 y 100
+        pid[i] = (pid[i]/4); // considerando que la velocidad deseada es maximo 400 rad/s y lo mapeamos entre 0 y 100
     }
 }
 
@@ -265,43 +263,43 @@ int main() {
     
     // Initialize start angle for each one encoder.
     // First encoder after checkmagnegPresent is ENCODER_2 that is conected to i2c0
-    obtainAngle(i2c0,0); // angle for starting
-    startAngle.startAngle[1]  =  correctedAngle; //(totalAngle*180)/3.141592; // save the angle in grades, its necessary in function obtainAngle
-    switchI2c(ENCODER_I2C_SDA_PINS[0],ENCODER_I2C_SCL_PINS[0], ENCODER_I2C_SDA_PINS[1],ENCODER_I2C_SCL_PINS[1]); // Enable encoder 1 i2c and disable encoder 2 i2c
-    obtainAngle(i2c0,0); // angle for starting
-    startAngle.startAngle[0]  = correctedAngle; // (totalAngle*180)/3.141592;
+    obtainAngle(i2c0,0); // angle for starting - RUEDA 2
+    startAngle[2]  =  correctedAngle; //(totalAngle*180)/3.141592; // save the angle in grades, its necessary in function obtainAngle
+    switchI2c(ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0, ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2); // Enable encoder 1 i2c and disable encoder 2 i2c
+    obtainAngle(i2c0,0); // angle for starting - RUEDA 1
+    startAngle[0]  = correctedAngle; // (totalAngle*180)/3.141592;
+
     // Four encoder after checkmagnaegPreset is ENCODER_4 that is conected to i2c1
-    obtainAngle(i2c1,0); // angle for starting
-    startAngle.startAngle[3]  = correctedAngle; // (totalAngle*180)/3.141592;
-    switchI2c(ENCODER_I2C_SDA_PINS[2],ENCODER_I2C_SCL_PINS[2], ENCODER_I2C_SDA_PINS[3],ENCODER_I2C_SCL_PINS[3]); // Enable encoder 3 i2c and disable encoder 4 i2c
-    obtainAngle(i2c1,0);
-    startAngle.startAngle[2]  = correctedAngle; // (totalAngle*180)/3.141592;
+    obtainAngle(i2c1,0); // angle for starting - RUEDA 4
+    startAngle[3]  = correctedAngle; // (totalAngle*180)/3.141592;
+    switchI2c(ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1, ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3); // Enable encoder 3 i2c and disable encoder 4 i2c
+    obtainAngle(i2c1,0); // angle for starting - RUEDA 3
+    startAngle[1]  = correctedAngle; // (totalAngle*180)/3.141592;
 
     sleep_ms(5000); // sleep 5 ms previo a calcular las velocidades angulares.
 
     while(true){
 
-        switchI2c(ENCODER_I2C_SDA_PINS[0],ENCODER_I2C_SCL_PINS[0], ENCODER_I2C_SDA_PINS[2],ENCODER_I2C_SCL_PINS[2]);
-        switchI2c(ENCODER_I2C_SDA_PINS[1],ENCODER_I2C_SCL_PINS[1], ENCODER_I2C_SDA_PINS[3],ENCODER_I2C_SCL_PINS[3]);
+        
 
         for(int i = 0 ; i<4; i++){
 
-            switch (i)
+            switch(i)
             {
             case 1:
-                switchI2c(ENCODER_I2C_SDA_PINS[2],ENCODER_I2C_SCL_PINS[2], ENCODER_I2C_SDA_PINS[0],ENCODER_I2C_SCL_PINS[0]);
+                switchI2c(ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2, ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0);
                 break;
             case 2:
-                switchI2c(ENCODER_I2C_SDA_PINS[3],ENCODER_I2C_SCL_PINS[3], ENCODER_I2C_SDA_PINS[1],ENCODER_I2C_SCL_PINS[1]);
-            }
-            
+                switchI2c(ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3, ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1);
+            }  
+
             numberTurns = 0;
             previousQuadrantNumber = 0;
             current_micros = time_us_64();
             previous_micros =  current_micros;
             ayudamedios = current_micros;
-           
-            while ((current_micros - previous_micros) <= TIME_WINDOW_US)
+
+            while (true)
             {
                 current_micros  = time_us_64();
 
@@ -309,17 +307,17 @@ int main() {
                     ayudamedios = current_micros;
 
                     if(i==0 || i == 2)
-                        obtainAngle(i2c0, startAngle.startAngle[i]);
+                        obtainAngle(i2c0, startAngle[i]);
                     else 
-                        obtainAngle(i2c1, startAngle.startAngle[i]);
+                        obtainAngle(i2c1, startAngle[i]);
                 }
 
                 if((current_micros - previous_micros) >= TIME_WINDOW_US){
                     // printf("velocidad angular: %f\n", angulo_inicial);
                     printf("v: %" PRId64 "\n", numberTurns);
                     printf("vel: %f \n", TO_RAD(correctedAngle, numberTurns)*INV_TIME_WINDOW_S); 
-
-                    speedData.angular[i] = TO_RAD(correctedAngle, numberTurns)*INV_TIME_WINDOW_S; // angular speed  
+                    speedData[i] = TO_RAD(correctedAngle, numberTurns)*INV_TIME_WINDOW_S; // angular speed  
+                    break;
                 } 
 
             }
@@ -327,6 +325,8 @@ int main() {
         }
 
         calcularControlPID();  
+        switchI2c(ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0, ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2);
+        switchI2c(ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1, ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3);
         //__wfi(); // a mimir, y esperar un evento
     } // end of while(1)
 
@@ -336,3 +336,4 @@ int main() {
 
     return 0;
 }
+

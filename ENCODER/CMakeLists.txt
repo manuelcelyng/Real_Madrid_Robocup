@@ -10,7 +10,7 @@ project(encoder)
 pico_sdk_init()
 
 add_executable(encoder
-    encoder.c
+    encoderv2.c
 )
 
 pico_enable_stdio_usb(encoder 1)

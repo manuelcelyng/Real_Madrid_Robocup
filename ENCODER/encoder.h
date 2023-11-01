@@ -3,15 +3,15 @@
 
 // CONSTANT PINS GPIO
 // FOR I2C 0
-#define ENCODER_I2C_SDA_PIN_1 4  // PIN 6 
-#define ENCODER_I2C_SCL_PIN_1 5  // PIN 7
-#define ENCODER_I2C_SDA_PIN_2 8  // PIN 11
-#define ENCODER_I2C_SCL_PIN_2 9  // PIN 12
+#define ENCODER_I2C_SDA_PIN_1 12  // PIN 16
+#define ENCODER_I2C_SCL_PIN_1 13  // PIN 17
+#define ENCODER_I2C_SDA_PIN_2 20  // PIN 26
+#define ENCODER_I2C_SCL_PIN_2 21  // PIN 27
 // FOR I2C 1
-#define ENCODER_I2C_SDA_PIN_3 6  // PIN 9
-#define ENCODER_I2C_SCL_PIN_3 7  // PIN 10
-#define ENCODER_I2C_SDA_PIN_4 26 // PIN 31 - pin 10 counting from USB
-#define ENCODER_I2C_SCL_PIN_4 27 // PIN 32 - pin 9  counting from USB
+#define ENCODER_I2C_SDA_PIN_3 14  // PIN 19
+#define ENCODER_I2C_SCL_PIN_3 15  // PIN 20
+#define ENCODER_I2C_SDA_PIN_4 18  // PIN 24 - pin 10 counting from USB
+#define ENCODER_I2C_SCL_PIN_4 19  // PIN 25 - pin 9  counting from USB
 
 // CONSTATS DIRECTION OF SLAVE IN ENCODER AND REGISTERS FOR READ OR WRITE
 #define ENCODER_ADDR 0X36       // address of i2c slave in the encoder.

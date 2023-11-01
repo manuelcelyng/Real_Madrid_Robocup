@@ -1,9 +1,33 @@
 #ifndef ENCODER_HW
 #define ENCODER_HW
 
+extern uint8_t previousQuadrantNumber;
+extern uint64_t numberTurns;
+
 // Constantes de pines GPIO
-#define ENCODER_I2C_SDA_PINS {4, 8, 6, 26}  // Pines SDA de I2C
-#define ENCODER_I2C_SCL_PINS {5, 9, 7, 27}  // Pines SCL de I2C
+// #define _ENCODER_I2C_SDA_PINS {12, 14, 20, 18}  // Pines SDA de I2C
+// #define _ENCODER_I2C_SCL_PINS {13, 15, 21, 19}  // Pines SCL de I2C
+
+// CONSTANT PINS GPIO
+/*
+ // ORDEN RUEDAS
+    1 |  2
+    ---|---
+    4  | 3
+    */
+// FOR I2C 0   - RUEDA 1
+#define ENCODER_I2C_SDA_PIN_0 12  // PIN 16 RUEDA 1
+#define ENCODER_I2C_SCL_PIN_0 13  // PIN 17 RUEDA 1
+// FOR I2C 1  - RUEDA 3
+#define ENCODER_I2C_SDA_PIN_1 14  // PIN 26 RUEDA 3
+#define ENCODER_I2C_SCL_PIN_1 15  // PIN 27 RUEDA 3
+// FOR I2C 0  - RUEDA 2
+#define ENCODER_I2C_SDA_PIN_2 20  // PIN 19 RUEDA 2
+#define ENCODER_I2C_SCL_PIN_2 21  // PIN 20 RUEDA 2
+// FOR I2C 1  - RUEDA 4
+#define ENCODER_I2C_SDA_PIN_3 18  // PIN 24 RUEDA 4
+#define ENCODER_I2C_SCL_PIN_3 19  // PIN 25 RUEDA 4
+
 
 // Constantes de dirección del esclavo en el encoder y registros para leer o escribir
 #define ENCODER_ADDR 0X36        // Direcciones de esclavo I2C
@@ -13,7 +37,7 @@
 
 // Límites del PID, velocidad angular máxima y algunos parámetros
 #define MAX_ANGULAR_SPEED 400
-#define TOTAL_TIME 10 // Para el PID 1/T  donde T es el tiempo total entre errores calculados
+#define TOTAL_TIME 10 // Para el PID 1/T  donde T es el tiempo total entre errores calculados-> T = TIME_WINDOW_US*4
 
 // Conversión de grados a radianes y ventana de tiempo para calcular la velocidad angular
 #define SAMPLING_TIME 5000  // Tiempo en microsegundos para muestrear el ángulo del encoder
@@ -32,35 +56,26 @@ extern const uint8_t RAWANGLE_L;
         uint16_t quadrantNumber;
 }_uint_16_t;
 
-// Estructura para ángulos iniciales
-typedef struct {
-    double startAngle[4];
-} AngleData;
+/* INFORMACION IMPORTANTE
+  // En todos los arreglos a continuación hay un orden por llanta .
+  // posicion [0] -> RUEDA 1
+  // posicion [1] -> RUEDA 3
+  // posicion [2] -> RUEDA 2  
+  // posicion [3] -> RUEDA 4 
+*/
 
-// Estructura para velocidades angulares
-typedef struct {
-    double angular[4];
-} SpeedData;
-
-// Estructura para velocidades angulares deseadas
-typedef struct {
-    double desired[4];
-} DesiredSpeedData;
-
-// Estructura para control PID
-typedef struct {
-    double PID[4];
-} PIDData;
-
-// Estructura para términos integrales de PID
-typedef struct {
-    float i[4];
-} PIDIntegralData;
-
-// Estructura para errores previos de PID
-typedef struct {
-    double previous[4];
-} PIDErrorData;
+// Para ángulos iniciales
+typedef double AngleData[4];
+// Para velocidades angulares
+typedef double SpeedData[4];
+// Para velocidades angulares deseadas
+typedef double DesiredSpeedData[4];
+// Para control PID - Se comparte con el core 0 para actualizar el pwm en el.
+typedef double PIDData[4];
+// Para términos integrales de PID;
+typedef double PIDIntegralData[4];
+// Para errores previos de PID
+typedef double PIDErrorData[4];
 
 // Métodos
 void initI2C();
