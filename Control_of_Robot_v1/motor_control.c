@@ -103,8 +103,8 @@ void initMotorControl(){
 void adjustPWM(){
     
     // pid[0] -> RUEDA 1
-    // pid[1] -> RUEDA 3
-    // pid[2] -> RUEDA 2  
+    // pid[1] -> RUEDA 2
+    // pid[2] -> RUEDA 3  
     // pid[3] -> RUEDA 4 
     for(int i = 0 ; i<4; i++){
         duty[i] =  duty[i] + (int)pid[i];
@@ -117,6 +117,6 @@ void adjustPWM(){
         }        
     }
   
-    setDutyxPID(duty[0], duty[2], duty[1], duty[3]);
+    setDutyxPID(duty[0], duty[1], duty[2], duty[3]);
     
 }

@@ -5,8 +5,8 @@
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
 
-#define IMU_I2C_SDA_PIN 26
-#define IMU_I2C_SCL_PIN 27
+#define IMU_I2C_SDA_PIN 20  // I2C0
+#define IMU_I2C_SCL_PIN 21  // I2C0
 
 static int addr = 0x68;
 #define XAccel 0x06

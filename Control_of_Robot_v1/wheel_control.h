@@ -13,11 +13,11 @@
 #define KP_0 0.05
 #define KI_0 0.0003
 #define KD_0 0.002
-//RUEDA 3
+//RUEDA 2
 #define KP_1 0.060
 #define KI_1 0.0003
 #define KD_1 0.002
-//RUEDA 2
+//RUEDA 3
 #define KP_2 0.05
 #define KI_2 0.0003
 #define KD_2 0.002
@@ -34,19 +34,19 @@ typedef double ConstantsD[4];
 // CONSTANT PINS GPIO FOR I2C
 /*
  // ORDEN RUEDAS
-     1 | 2     <---- I2C_0
+     1 | 2     <---- I2C_1
     ---|---
      4 | 3     <---- I2C_1
 */
-// FOR I2C 0   -  RUEDA 1
-#define ENCODER_I2C_SDA_PIN_0 12  // PIN 16 RUEDA 1 I2C0
-#define ENCODER_I2C_SCL_PIN_0 13  // PIN 17 RUEDA 1 I2C0
-// FOR I2C 1  - RUEDA 3 
+// FOR I2C 1   -  RUEDA 1
+#define ENCODER_I2C_SDA_PIN_0 10  // PIN 16 RUEDA 1 I2C1  CAMBIO CAMBIO IMPORTANTE
+#define ENCODER_I2C_SCL_PIN_0 11  // PIN 17 RUEDA 1 I2C1
+// FOR I2C 1  -  RUEDA 2 
 #define ENCODER_I2C_SDA_PIN_1 14  // PIN 26 RUEDA 3 I2C1
 #define ENCODER_I2C_SCL_PIN_1 15  // PIN 27 RUEDA 3 I2C1
-// FOR I2C 0  - RUEDA 2
-#define ENCODER_I2C_SDA_PIN_2 20  // PIN 19 RUEDA 2 I2C0
-#define ENCODER_I2C_SCL_PIN_2 21  // PIN 20 RUEDA 2 I2C0
+// FOR I2C 1  - RUEDA 3
+#define ENCODER_I2C_SDA_PIN_2 26  // PIN 19 RUEDA 2 I2C1  CAMBIO CAMBIO IMPORTANTE
+#define ENCODER_I2C_SCL_PIN_2 27  // PIN 20 RUEDA 2 I2C1
 // FOR I2C 1  - RUEDA 4
 #define ENCODER_I2C_SDA_PIN_3 18  // PIN 24 RUEDA 4 I2C1
 #define ENCODER_I2C_SCL_PIN_3 19  // PIN 25 RUEDA 4 I2C1
@@ -114,7 +114,7 @@ extern PIDErrorData pidPreviousError;
 void initI2C();
 void checkMagnetPresent();
 void switchI2c(uint sda_enable, uint scl_enable, uint sda_disable , uint scl_disable);
-void obtainAngle(i2c_inst_t *a, double startAngle);
+void obtainAngle(double startAngle);
 void calcularControlPID();
 
 
