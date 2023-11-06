@@ -75,8 +75,8 @@ void moverMotor(char* buffer){
 
 void setDutyxPID(int one_D, int two_D, int three_D, int four_D){
     pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, one_D); // RUEDA 1
-    pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, two_D); // RUEDA 2
     pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, three_D); // RUEDA 3 
+    pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, two_D); // RUEDA 2
     pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, four_D);   // RUEDA 4
 }
 

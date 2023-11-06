@@ -6,7 +6,7 @@
 #include <inttypes.h>
 // include my own .h
 #include "wheel_control.h"
-
+#include "imu.h"
 
 // All struct for PID control
 SpeedData speedData = {0.0, 0.0, 0.0, 0.0};
@@ -77,11 +77,18 @@ void initI2C(){
     gpio_pull_up(ENCODER_I2C_SDA_PIN_3);
     gpio_pull_up(ENCODER_I2C_SCL_PIN_3);
 
+     // configura la imu
+    gpio_set_function(IMU_I2C_SDA_PIN, GPIO_FUNC_NULL);
+    gpio_set_function(IMU_I2C_SCL_PIN,  GPIO_FUNC_NULL);
+    gpio_pull_up(IMU_I2C_SDA_PIN);
+    gpio_pull_up(IMU_I2C_SCL_PIN);
+
     // Make the I2C pins available to picotool
     bi_decl(bi_2pins_with_func(ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0, GPIO_FUNC_I2C));
     bi_decl(bi_2pins_with_func(ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1, GPIO_FUNC_I2C));
     bi_decl(bi_2pins_with_func(ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2, GPIO_FUNC_I2C));
     bi_decl(bi_2pins_with_func(ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3, GPIO_FUNC_I2C));
+    bi_decl(bi_2pins_with_func(IMU_I2C_SDA_PIN, IMU_I2C_SCL_PIN, GPIO_FUNC_I2C));
     
 
     printf("\nI2C Bus Scan\n");
@@ -103,7 +110,7 @@ void initI2C(){
         if (reserved_addr(addr))
             ret = PICO_ERROR_GENERIC;
         else
-            ret = i2c_read_blocking(i2c_default, addr, &rxdata, 1, false);
+            ret = i2c_read_blocking(i2c1, addr, &rxdata, 1, false);
  
         printf(ret < 0 ? "." : "@");
         printf(addr % 16 == 15 ? "\n" : "  ");

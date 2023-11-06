@@ -53,7 +53,7 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
 void control(float e[3][1], float ek[3][1], float q[3][1], float uk[3][1], float U[3][1]) {
     float kc = 100;
     float v_max = 4.54;
-    float w_max = 1.57;
+    float w_max = 0.27;
     float ti = 0.01;
     float ts = 0.01;
     float phi = q[2][0];

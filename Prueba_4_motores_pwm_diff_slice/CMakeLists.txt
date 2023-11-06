@@ -15,6 +15,7 @@ bluetooth.c
 control.c
 motor_control.c
 wheel_control.c
+imu.c
 )
 
 pico_enable_stdio_uart(motor_control 1)
