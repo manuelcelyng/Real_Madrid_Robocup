@@ -6,5 +6,5 @@
         "sharedfunctions.h": "c",
         "control.h": "c"
     },
-    "cmake.sourceDirectory": "C:/Users/manue/Documents/Pico-v1.5.1/MisProyectos/Real_Madrid_Robocup/Prueba_4_motores_pwm_diff_slice"
+    "cmake.sourceDirectory": "C:/Users/Acer/Documents/proyecto_embebido/Real_Madrid_Robocup/Control_of_Robot_v1"
 }
