@@ -1,4 +1,4 @@
-// Padded and checksummed version of: C:/Users/Acer/Documents/Embebidos/Prueba_4_motores_pwm_diff_slice/build/pico-sdk/src/rp2_common/boot_stage2/bs2_default.bin
+// Padded and checksummed version of: C:/Users/Acer/Documents/Embebidos/Real_Madrid_Robocup/build/pico-sdk/src/rp2_common/boot_stage2/bs2_default.bin
 
 .cpu cortex-m0plus
 .thumb
