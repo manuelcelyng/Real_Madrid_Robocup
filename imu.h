@@ -1,12 +1,10 @@
+
 #ifndef IMU_HW
 #define IMU_HW
 
 #include "hardware/i2c.h"
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
-
-#define IMU_I2C_SDA_PIN 20  // I2C0
-#define IMU_I2C_SCL_PIN 21  // I2C0
 
 static int addr = 0x68;
 #define XAccel 0x06
@@ -22,7 +20,8 @@ static int addr = 0x68;
 #define YOffsetGyro -47
 #define ZOffsetGyro 5
 #define GPIO_FUNC_I2C 3
-
+#define IMU_I2C_SDA_PIN 20
+#define IMU_I2C_SCL_PIN 21
 
 
 /* Example code to talk to a MPU6050 MEMS accelerometer and gyroscope
@@ -49,6 +48,5 @@ void mpu6050_reset();
 void init_i2c_imu();
 void setOffset(int16_t valor, uint8_t dir);
 int16_t getOffset(uint8_t dir);
-void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3]);
-
+void mpu6050_read_raw(int16_t *gyro);
 #endif

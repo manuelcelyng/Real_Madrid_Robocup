@@ -44,6 +44,15 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
     dteta[2][0] *= 5;
     dteta[3][0] *= 5;
 
+    // Limitar dteta al rango de -400 a 400
+    for (int i = 0; i < 4; i++) {
+        if (dteta[i][0] > 200.0) {
+            dteta[i][0] = 200.0;
+        } else if (dteta[i][0] < -200.0) {
+            dteta[i][0] = -200.0;
+        }
+    }
+
     // Perform matrix-vector multiplication to get dq
     dq[0][0] = R[0][0] * U[0][0] + R[0][1] * U[1][0] + R[0][2] * U[2][0];
     dq[1][0] = R[1][0] * U[0][0] + R[1][1] * U[1][0] + R[1][2] * U[2][0];
@@ -52,8 +61,8 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
 
 void control(float e[3][1], float ek[3][1], float q[3][1], float uk[3][1], float U[3][1]) {
     float kc = 100;
-    float v_max = 4.54;
-    float w_max = 0.27;
+    float v_max = 10.0;
+    float w_max = 1.57;
     float ti = 0.01;
     float ts = 0.01;
     float phi = q[2][0];
@@ -96,7 +105,6 @@ void control(float e[3][1], float ek[3][1], float q[3][1], float uk[3][1], float
     Utemp[0][0] = R[0][0] * u[0][0] + R[0][1] * u[1][0] + R[0][2] * u[2][0];
     Utemp[1][0] = R[1][0] * u[0][0] + R[1][1] * u[1][0] + R[1][2] * u[2][0];
     Utemp[2][0] = R[2][0] * u[0][0] + R[2][1] * u[1][0] + R[2][2] * u[2][0];
-
     // Apply the velocity limits
     for (int i = 0; i < 2; i++) {
         if (Utemp[i][0] > v_max) {
