@@ -43,33 +43,23 @@ void moverMotor(char* buffer){
     if(buffer[0] =='z'){
         //printf("ENTRO %s", buffer[0]);
         
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 780);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 780);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 780);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 780);
+        // INICIAR EJECUCION 90 GRADOS
        
     }
     if(buffer[0] =='s'){
         //printf("ENTRO %c", buffer[0]);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 750);
-        // sleep_ms(1000);
+        
+        // INICIAR EJECUCION 180 GRADOS
     }
     if(buffer[0] =='a'){
         //printf("ENTRO %s", buffer[0]);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 680);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 680);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 680);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 680);
+        
+        // MOVIMIENTO LINEA RECTA - VER COMO IMPLEMENTAR (DISTANCIA QUE RECORRE ¿?)
     }
     if(buffer[0] =='b'){
         //printf("ENTRO %c", buffer[0]);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 750);
+        
+        // MOVIMIENTO DE ARCO, DADO EL RADIO Y LOS GRADOS.
     }
 }
 
