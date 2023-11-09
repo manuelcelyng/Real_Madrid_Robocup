@@ -65,8 +65,10 @@ int main(){
     long double ang_z_prev = 0;
     while (1) {
 
-        tight_loop_contents();
+        //tight_loop_contents();
         sem_acquire_blocking(&sem1); // Adquirir el semáforo sem1
+
+        mpu6050_read_raw(&gyro);
 
         dt = (time_us_32()-tiempo_prev);
         tiempo_prev=time_us_32();
@@ -74,15 +76,15 @@ int main(){
         //Calcular angulo de rotación con giroscopio 
         if(gyro > 60 | gyro < -60){ 
             ang_z = gyro*dt;
-            //ang_z /= 131072000.0;
-            ang_z /= 7509877799.0;
+            ang_z /= 131072000.0;
+            //ang_z /= 7509877799.0;
             ang_z += ang_z_prev;
             ang_z_prev=ang_z;
         }
-        //printf("Rotacion en Z:  ");
-        //printf("%d  ", dt);
-        //printf("%d  ", gyro);
-        //printf("%f  \n", ang_z);
+        printf("Rotacion en Z:  ");
+        printf("%d  ", dt);
+        printf("%d  ", gyro);
+        printf("%f  \n", ang_z);
 
         float t_i = (time_us_64()-offset_time)*1e-6;
 
@@ -97,7 +99,7 @@ int main(){
             ek[j][0] = e[j][0];
         }
 
-        q[2][0] = ang_z;
+        //q[2][0] = ang_z;
 
         // Calculate e
         for (int j = 0; j < 3; j++) {
@@ -130,13 +132,13 @@ int main(){
         printf("%f,%f,%f,%f\n",dteta[0][0], dteta[1][0], dteta[2][0], dteta[3][0]);
         
 
-        mpu6050_read_raw(&gyro);
+     
         
 
-        desiredSpeed[0] = dteta[0][0];  // RUEDA 1
-        desiredSpeed[1] = dteta[3][0];  // RUEDA 2
+        desiredSpeed[0] = -1*dteta[3][0];  // RUEDA 1
+        desiredSpeed[1] = -1*dteta[0][0];  // RUEDA 2
         desiredSpeed[2] = dteta[2][0];  // RUEDA 3
-        desiredSpeed[3] = dteta[1][0];  // RUEDA  4
+        desiredSpeed[3] = dteta[1][0];  // RUEDA 4
     
         sem_release(&sem2);
      }
@@ -161,6 +163,7 @@ void main2() {
     
 
     while(true){
+
         sem_acquire_blocking(&sem2); // Adquirir el semáforo sem2
         
         

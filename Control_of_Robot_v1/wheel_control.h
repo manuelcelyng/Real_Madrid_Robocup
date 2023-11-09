@@ -10,7 +10,7 @@
 #define KI_0 0.0003
 #define KD_0 0.002
 //RUEDA 2
-#define KP_1 0.06
+#define KP_1 0.055
 #define KI_1 0.0003
 #define KD_1 0.002
 //RUEDA 3
@@ -18,7 +18,7 @@
 #define KI_2 0.0003
 #define KD_2 0.002
 // RUEDA 4
-#define KP_3 0.06
+#define KP_3 0.055
 #define KI_3 0.0003
 #define KD_3 0.002
 // defines 3 vectors that contain all constants of pid for each wheel
@@ -38,11 +38,11 @@ typedef double ConstantsD[4];
 #define ENCODER_I2C_SDA_PIN_0 10  // PIN 16 RUEDA 1 I2C1  CAMBIO CAMBIO IMPORTANTE
 #define ENCODER_I2C_SCL_PIN_0 11  // PIN 17 RUEDA 1 I2C1
 // FOR I2C 1  -  RUEDA 2 
-#define ENCODER_I2C_SDA_PIN_1 14  // PIN 26 RUEDA 2 I2C1
-#define ENCODER_I2C_SCL_PIN_1 15  // PIN 27 RUEDA 2 I2C1
+#define ENCODER_I2C_SDA_PIN_1 26  // PIN 26 RUEDA 2 I2C1
+#define ENCODER_I2C_SCL_PIN_1 27  // PIN 27 RUEDA 2 I2C1
 // FOR I2C 1  - RUEDA 3
-#define ENCODER_I2C_SDA_PIN_2 26  // PIN 19 RUEDA 3 I2C1  CAMBIO CAMBIO IMPORTANTE
-#define ENCODER_I2C_SCL_PIN_2 27  // PIN 20 RUEDA 3 I2C1
+#define ENCODER_I2C_SDA_PIN_2 14  // PIN 19 RUEDA 3 I2C1  CAMBIO CAMBIO IMPORTANTE
+#define ENCODER_I2C_SCL_PIN_2 15  // PIN 20 RUEDA 3 I2C1
 // FOR I2C 1  - RUEDA 4
 #define ENCODER_I2C_SDA_PIN_3 18  // PIN 24 RUEDA 4 I2C1
 #define ENCODER_I2C_SCL_PIN_3 19  // PIN 25 RUEDA 4 I2C1
