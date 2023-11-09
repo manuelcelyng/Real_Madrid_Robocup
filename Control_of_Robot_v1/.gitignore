@@ -1,4 +1,1 @@
-#*.log  -> ignora todo archivo con esa extension
-#/build/ -> ignora una carpeta
-#**/archivo-a-no-subir.txt -> ignora un archivo y lo busca en todas las carpetas que haya para ignorarlo.
-/build/
+**/build/

@@ -4,17 +4,13 @@
 #include <inttypes.h> // for pring uint64_t or another type
 
 
-// Constantes de pines GPIO
-// #define _ENCODER_I2C_SDA_PINS {12, 14, 20, 18}  // Pines SDA de I2C
-// #define _ENCODER_I2C_SCL_PINS {13, 15, 21, 19}  // Pines SCL de I2C
-
 // Constantes para control P, PI o PID
 //RUEDA 1
 #define KP_0 0.05
 #define KI_0 0.0003
 #define KD_0 0.002
 //RUEDA 2
-#define KP_1 0.060
+#define KP_1 0.055
 #define KI_1 0.0003
 #define KD_1 0.002
 //RUEDA 3
@@ -22,7 +18,7 @@
 #define KI_2 0.0003
 #define KD_2 0.002
 // RUEDA 4
-#define KP_3 0.066
+#define KP_3 0.055
 #define KI_3 0.0003
 #define KD_3 0.002
 // defines 3 vectors that contain all constants of pid for each wheel
@@ -42,11 +38,11 @@ typedef double ConstantsD[4];
 #define ENCODER_I2C_SDA_PIN_0 10  // PIN 16 RUEDA 1 I2C1  CAMBIO CAMBIO IMPORTANTE
 #define ENCODER_I2C_SCL_PIN_0 11  // PIN 17 RUEDA 1 I2C1
 // FOR I2C 1  -  RUEDA 2 
-#define ENCODER_I2C_SDA_PIN_1 14  // PIN 26 RUEDA 3 I2C1
-#define ENCODER_I2C_SCL_PIN_1 15  // PIN 27 RUEDA 3 I2C1
+#define ENCODER_I2C_SDA_PIN_1 26  // PIN 26 RUEDA 2 I2C1
+#define ENCODER_I2C_SCL_PIN_1 27  // PIN 27 RUEDA 2 I2C1
 // FOR I2C 1  - RUEDA 3
-#define ENCODER_I2C_SDA_PIN_2 26  // PIN 19 RUEDA 2 I2C1  CAMBIO CAMBIO IMPORTANTE
-#define ENCODER_I2C_SCL_PIN_2 27  // PIN 20 RUEDA 2 I2C1
+#define ENCODER_I2C_SDA_PIN_2 14  // PIN 19 RUEDA 3 I2C1  CAMBIO CAMBIO IMPORTANTE
+#define ENCODER_I2C_SCL_PIN_2 15  // PIN 20 RUEDA 3 I2C1
 // FOR I2C 1  - RUEDA 4
 #define ENCODER_I2C_SDA_PIN_3 18  // PIN 24 RUEDA 4 I2C1
 #define ENCODER_I2C_SCL_PIN_3 19  // PIN 25 RUEDA 4 I2C1
@@ -66,7 +62,7 @@ extern const uint8_t RAWANGLE_L;
 #define MAX_ANGULAR_SPEED 400
 #define TOTAL_TIME 10 // Para el PID 1/T  donde T es el tiempo total entre errores calculados-> T = TIME_WINDOW_US*4
 // Conversión de grados a radianes y ventana de tiempo para calcular la velocidad angular
-#define SAMPLING_TIME 1000 // Time in microseconds to sample encoder angle
+#define SAMPLING_TIME 800 // Time in microseconds to sample encoder angle
 #define TIME_WINDOW_US 25000  // Time window in microseconds for calculating the angular velocity of a single encoder
 #define INV_TIME_WINDOW_S 40  // [s^-1] Inverso de TIME_WINDOW_US, convertido a segundos y calculado como 1 / TIME_WINDOW_US
 #define TO_RAD(angle, turns) (((turns * 2.0) + (angle / 180.0)) * 3.141592) // convert degrees to radians

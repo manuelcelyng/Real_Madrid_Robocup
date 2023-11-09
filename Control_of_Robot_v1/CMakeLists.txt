@@ -3,26 +3,26 @@ cmake_minimum_required(VERSION 3.13)
 include(pico_sdk_import.cmake)
 
 
-project(motor_control)
+project(myRealMadridRobocup)
 
 
 
 pico_sdk_init()
 
-add_executable(motor_control
-main.c
-bluetooth.c
-control.c
-motor_control.c
-wheel_control.c
-imu.c
+add_executable(myrealmadridrobocup
+    main.c
+    bluetooth.c
+    control.c
+    motor_control.c
+    wheel_control.c
+    imu.c
 )
 
-pico_enable_stdio_uart(motor_control 1)
-pico_enable_stdio_usb(motor_control 1)
+pico_enable_stdio_uart(myrealmadridrobocup 1)
+pico_enable_stdio_usb(myrealmadridrobocup 1)
 
 
 
-target_link_libraries(motor_control pico_stdlib pico_sync pico_multicore hardware_pwm hardware_uart hardware_sync hardware_resets hardware_i2c)
+target_link_libraries(myrealmadridrobocup pico_stdlib pico_sync pico_multicore hardware_pwm hardware_uart hardware_sync hardware_resets hardware_i2c)
 
-pico_add_extra_outputs(motor_control)
+pico_add_extra_outputs(myrealmadridrobocup)

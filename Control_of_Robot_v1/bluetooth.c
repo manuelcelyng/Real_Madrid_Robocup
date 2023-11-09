@@ -15,12 +15,11 @@
 volatile uint8_t buffer_index = 0;
 char buffer[BUFFER_SIZE]= {0};
 
-
+// QUITAR EL MALLOC Y FREE DE LA ISR
 
 void uart_rx_handler() {
-    char *miCadena = (char *)malloc(20 * sizeof(char));
     irq_clear(UART1_IRQ);
-
+    char *miCadena = (char *)malloc(20 * sizeof(char));
     // uart_read_blocking(uart1, (uint8_t *)buffer, BUFFER_SIZE - 1);
     while (uart_is_readable(uart1)) {    
         char data = uart_getc(uart1);

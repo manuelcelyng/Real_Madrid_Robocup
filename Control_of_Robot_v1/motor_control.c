@@ -43,40 +43,30 @@ void moverMotor(char* buffer){
     if(buffer[0] =='z'){
         //printf("ENTRO %s", buffer[0]);
         
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 780);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 780);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 780);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 780);
+        // INICIAR EJECUCION 90 GRADOS
        
     }
     if(buffer[0] =='s'){
         //printf("ENTRO %c", buffer[0]);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 750);
-        // sleep_ms(1000);
+        
+        // INICIAR EJECUCION 180 GRADOS
     }
     if(buffer[0] =='a'){
         //printf("ENTRO %s", buffer[0]);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 680);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 680);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 680);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 680);
+        
+        // MOVIMIENTO LINEA RECTA - VER COMO IMPLEMENTAR (DISTANCIA QUE RECORRE ¿?)
     }
     if(buffer[0] =='b'){
         //printf("ENTRO %c", buffer[0]);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 750);
+        
+        // MOVIMIENTO DE ARCO, DADO EL RADIO Y LOS GRADOS.
     }
 }
 
 void setDutyxPID(int one_D, int two_D, int three_D, int four_D){
     pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, one_D); // RUEDA 1
-    pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, three_D); // RUEDA 3 
     pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, two_D); // RUEDA 2
+    pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, three_D); // RUEDA 3 
     pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, four_D);   // RUEDA 4
 }
 
@@ -116,7 +106,24 @@ void adjustPWM(){
             duty[i] = MIN_DUTY;
         }        
     }
-  
-    setDutyxPID(duty[0], duty[1], duty[2], duty[3]);
-    
+
+    DutyCycle duty_aux = {750,750,750,750};
+    if (duty[0]> 770 || duty[0]<730)
+    {
+        duty_aux[0] = duty[0];
+    }
+    if (duty[1]> 770 || duty[1]<730)
+    {
+        duty_aux[1] = duty[1];
+    }
+    if (duty[2]> 770 || duty[2]<730)
+    {
+        duty_aux[2] = duty[2];
+    }
+    if (duty[3]> 770 || duty[3]<730)
+    {
+        duty_aux[3] = duty[3];
+    }
+    setDutyxPID(duty_aux[0], duty_aux[1], duty_aux[2], duty_aux[3]);
+
 }

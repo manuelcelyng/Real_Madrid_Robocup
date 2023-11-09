@@ -44,6 +44,15 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
     dteta[2][0] *= 5;
     dteta[3][0] *= 5;
 
+    // Limitar dteta al rango de -400 a 400
+    for (int i = 0; i < 4; i++) {
+        if (dteta[i][0] > 200.0) {
+            dteta[i][0] = 200.0;
+        } else if (dteta[i][0] < -200.0) {
+            dteta[i][0] = -200.0;
+        }
+    }
+
     // Perform matrix-vector multiplication to get dq
     dq[0][0] = R[0][0] * U[0][0] + R[0][1] * U[1][0] + R[0][2] * U[2][0];
     dq[1][0] = R[1][0] * U[0][0] + R[1][1] * U[1][0] + R[1][2] * U[2][0];
@@ -52,8 +61,8 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
 
 void control(float e[3][1], float ek[3][1], float q[3][1], float uk[3][1], float U[3][1]) {
     float kc = 100;
-    float v_max = 4.54;
-    float w_max = 0.27;
+    float v_max = 10.0;
+    float w_max = 1.57;
     float ti = 0.01;
     float ts = 0.01;
     float phi = q[2][0];
@@ -96,7 +105,6 @@ void control(float e[3][1], float ek[3][1], float q[3][1], float uk[3][1], float
     Utemp[0][0] = R[0][0] * u[0][0] + R[0][1] * u[1][0] + R[0][2] * u[2][0];
     Utemp[1][0] = R[1][0] * u[0][0] + R[1][1] * u[1][0] + R[1][2] * u[2][0];
     Utemp[2][0] = R[2][0] * u[0][0] + R[2][1] * u[1][0] + R[2][2] * u[2][0];
-
     // Apply the velocity limits
     for (int i = 0; i < 2; i++) {
         if (Utemp[i][0] > v_max) {
@@ -115,63 +123,3 @@ void control(float e[3][1], float ek[3][1], float q[3][1], float uk[3][1], float
         U[2][0] = Utemp[2][0];
     }
 }
-
-/*
-
-int main() {
-    stdio_init_all();
-    float delta = 0.01;
-    float q[3][1] = {{-0.2}, {1}, {0}};
-    float T = 2;
-    float b = 2 * 3.141592653589793 / T;
-    float ek[3][1] = {{0}, {0}, {0}};
-    float U[3][1] = {{0}, {0}, {0}};
-    float uk[3][1] = {{0}, {0}, {0}};
-    float e[3][1] = {{0}, {0}, {0}};
-    for (int i = 0; i < 4000; i++) { // Assuming 4000 iterations, matching the Python code
-        float t_i = i * delta;
-
-        // Calculate qd
-        float qd[3][1];
-        qd[0][0] = sinf(b * t_i);
-        qd[1][0] = sinf(b * t_i);
-        qd[2][0] = 0;
-
-        // Update ek
-        float ek_temp[3][1];
-        for (int j = 0; j < 3; j++) {
-            ek[j][0] = e[j][0];
-        }
-
-        // Calculate e
-        for (int j = 0; j < 3; j++) {
-            e[j][0] = qd[j][0] - q[j][0];
-        }
-
-        // Call the control function to update U
-        uk[0][0] = U[0][0];
-        uk[1][0] = U[1][0];
-        uk[2][0] = U[2][0];
-        control(e, ek, q, uk, U);
-
-        // Call the planta function to calculate dq and dteta
-        float dq[3][1];
-        float dteta[4][1];
-        planta(U, q, dq, dteta);
-
-        // Update q
-        for (int j = 0; j < 3; j++) {
-            q[j][0] += dq[j][0] * delta;
-        }
-
-        printf("%f,%f,%f\n",q[0][0], qd[0][0], dteta[1][0]);
-        sleep_ms(10);
-    }
-    while (true) {
-        //printf("Prendido\n");
-        sleep_ms(250);
-    }
-
-    
-}
-*/

@@ -8,6 +8,7 @@
 #include "wheel_control.h"
 #include "imu.h"
 
+
 // All struct for PID control
 SpeedData speedData = {0.0, 0.0, 0.0, 0.0};
 DesiredSpeedData desiredSpeed = {0.0, 0.0, 0.0, 0.0};
@@ -80,6 +81,7 @@ void initI2C(){
      // configura la imu
     gpio_set_function(IMU_I2C_SDA_PIN,  GPIO_FUNC_I2C);
     gpio_set_function(IMU_I2C_SCL_PIN,  GPIO_FUNC_I2C);
+
     gpio_pull_up(IMU_I2C_SDA_PIN);
     gpio_pull_up(IMU_I2C_SCL_PIN);
 
@@ -151,12 +153,12 @@ void checkMagnetPresent(){
             i2c_read_blocking(i2c1, ENCODER_ADDR, &magnedStatus,1,false); // Read data sended from encoder status register
            
             printf("value is for encoder %d : %d\n", equisde+1 ,magnedStatus);
-            sleep_ms(1000);
+            sleep_ms(10);
         }
 
         printf("Magnet Found! Encoder: %d \n ", equisde+1);
         
-        sleep_ms(3000);
+        sleep_ms(30);
 
         
     }

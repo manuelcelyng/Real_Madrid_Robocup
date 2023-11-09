@@ -14,6 +14,7 @@
 #include "imu.h"
 
 
+
 semaphore_t sem1;
 semaphore_t sem2;
 
@@ -29,29 +30,25 @@ int main(){
     initMotorControl();
     sleep_ms(3000);
 
+  
 
     // Initialize I2C and check magnetPresent in encoders
     initI2C(); // initialize I2C, pins are defined in encoder.h
     checkMagnetPresent(); // block until magnet is found in required state for all encoders, afte it , i2c encoders 2 and 4 are active
 
+
     mpu6050_reset();  // IMU IN I2C0
+
 
     initUart(GPIO_UART_TX, GPIO_UART_RX); // initialize BLUETOoth
     
     // inicializo el otro core 
     multicore_launch_core1(main2); 
 
-    //Imu variables
-    int16_t acceleration[3];
-    int16_t gyro[3] = {0,0,0};
-    int32_t tiempo_prev = 0;
-    int32_t dt;
-    long double ang_z = 0;
-    long double ang_z_prev = 0;
-
-
-    //control space
-    float delta = 0.01;
+    // CONTROL PID - ROBOT 
+    
+   //control space
+    float delta = 0.001;
     float q[3][1] = {{0}, {0}, {0}};
     float T = 30;
     float b = 2 * 3.141592653589793 / T;
@@ -60,28 +57,41 @@ int main(){
     float uk[3][1] = {{0}, {0}, {0}};
     float e[3][1] = {{0}, {0}, {0}};
     uint64_t offset_time = time_us_64();
-
+    //Imu variables
+    int16_t gyro = 0;
+    int32_t tiempo_prev = 0;
+    int32_t dt;
+    long double ang_z = 0;
+    long double ang_z_prev = 0;
     while (1) {
-        tight_loop_contents();
-        
+
+        //tight_loop_contents();
+        sem_acquire_blocking(&sem1); // Adquirir el semáforo sem1
+
+        mpu6050_read_raw(&gyro);
 
         dt = (time_us_32()-tiempo_prev);
         tiempo_prev=time_us_32();
 
-        //Calcular angulo de rotación con giroscopio  
-        ang_z = gyro[2]*dt;
-        ang_z /= 131072000.0;
-        ang_z += ang_z_prev;
-        ang_z_prev=ang_z;
+        //Calcular angulo de rotación con giroscopio 
+        if(gyro > 60 | gyro < -60){ 
+            ang_z = gyro*dt;
+            ang_z /= 131072000.0;
+            //ang_z /= 7509877799.0;
+            ang_z += ang_z_prev;
+            ang_z_prev=ang_z;
+        }
         printf("Rotacion en Z:  ");
+        printf("%d  ", dt);
+        printf("%d  ", gyro);
         printf("%f  \n", ang_z);
 
         float t_i = (time_us_64()-offset_time)*1e-6;
 
         // Calculate qd
         float qd[3][1];
-        qd[0][0] = 0; //2*sinf(b * t_i);
-        qd[1][0] = 4*sinf(b * t_i);
+        qd[0][0] = q[0][0]-0.1;//-4*sinf(b * t_i)*sinf(b * t_i);
+        qd[1][0] = 0;//2*sinf(b * t_i);
         qd[2][0] = 0;
 
         // Update ek
@@ -89,7 +99,7 @@ int main(){
             ek[j][0] = e[j][0];
         }
 
-        q[2][0] = ang_z;
+        //q[2][0] = ang_z;
 
         // Calculate e
         for (int j = 0; j < 3; j++) {
@@ -121,14 +131,15 @@ int main(){
         }
         printf("%f,%f,%f,%f\n",dteta[0][0], dteta[1][0], dteta[2][0], dteta[3][0]);
         
-        mpu6050_read_raw(acceleration, gyro);
-        sem_acquire_blocking(&sem1); // Adquirir el semáforo sem1
 
-        desiredSpeed[0] = dteta[0][0];  // RUEDA 1
-        desiredSpeed[1] = dteta[2][0];  // RUEDA 2
-        desiredSpeed[2] = dteta[3][0];  // RUEDA 3
-        desiredSpeed[3] = dteta[1][0];  // RUEDA  4
+     
+        
 
+        desiredSpeed[0] = -1*dteta[3][0];  // RUEDA 1
+        desiredSpeed[1] = -1*dteta[0][0];  // RUEDA 2
+        desiredSpeed[2] = dteta[2][0];  // RUEDA 3
+        desiredSpeed[3] = dteta[1][0];  // RUEDA 4
+    
         sem_release(&sem2);
      }
 
@@ -139,10 +150,6 @@ int main(){
 // CORE 1
 void main2() {
 
-    // desiredSpeed[0] = 200;  // RUEDA 1
-    // desiredSpeed[1] = -200;  // RUEDA 3
-    // desiredSpeed[2] = 0;  // RUEDA 2 
-    // desiredSpeed[3] = 0; // RUEDA 4
 
     AngleData startAngle; // struct with all start angles
     // measure the time in microseconds with function time_us_64()
@@ -156,8 +163,10 @@ void main2() {
     
 
     while(true){
-        
+
         sem_acquire_blocking(&sem2); // Adquirir el semáforo sem2
+        
+        
         for(int i = 0 ; i<4; i++){
 
             switch(i)
@@ -203,7 +212,7 @@ void main2() {
                     if(previousAngle<0){
                         previousAngle= -1*previousAngle;
                     }
-                    if( previousAngle<=1   ||  (previousAngle)>=359 && numberTurns==0 ){
+                    if( previousAngle<=1   ||  (previousAngle)>358 ){
                         speedData[i] = 0;
                     }else{
                         
@@ -222,12 +231,16 @@ void main2() {
             
         }
 
-        
         calcularControlPID();  
         adjustPWM();
+
         sem_release(&sem1); // Liberar el semáforo sem1
         
         
 
     } // end of while(1)
+}
+
+void imu_c(){
+
 }
