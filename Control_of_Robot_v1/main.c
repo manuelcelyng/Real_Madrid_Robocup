@@ -76,8 +76,8 @@ int main(){
         //Calcular angulo de rotación con giroscopio 
         if(gyro > 60 | gyro < -60){ 
             ang_z = gyro*dt;
-            ang_z /= 131072000.0;
-            //ang_z /= 7509877799.0;
+            //ang_z /= 16400000.0;
+            ang_z /= 939650784.0;
             ang_z += ang_z_prev;
             ang_z_prev=ang_z;
         }
@@ -99,7 +99,7 @@ int main(){
             ek[j][0] = e[j][0];
         }
 
-        //q[2][0] = ang_z;
+        q[2][0] = ang_z;
 
         // Calculate e
         for (int j = 0; j < 3; j++) {

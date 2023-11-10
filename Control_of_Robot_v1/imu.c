@@ -16,6 +16,19 @@ void mpu6050_reset() {
     // There are a load more options to set up the device in different ways that could be added here
     uint8_t buf[] = {0x6B, 0x00};
     i2c_write_blocking(i2c_default, addr, buf, 2, false);
+    
+    uint8_t buf1[] = {0x1A, 0x00};
+    // Switch on the low-pass filter.
+    i2c_write_blocking(i2c_default, addr, buf1, 2, false);;
+  
+    uint8_t buf2[] = {0x1C, 0x10};
+    // configure the accelerometer output -  AFS_SEL  +-8g scale range off acelerometer
+    i2c_write_blocking(i2c_default, addr, buf2, 2, false);;
+  
+    uint8_t buf3[] = {0x1B, 0x18};
+    // configure full scale range of gyroscope +-2000 grados/segundo
+    i2c_write_blocking(i2c_default, addr, buf3, 2, false);;
+ 
     setOffset(XOffsetAccel, XAccel);
     setOffset(YOffsetAccel, YAccel);
     setOffset(ZOffsetAccel, ZAccel);
