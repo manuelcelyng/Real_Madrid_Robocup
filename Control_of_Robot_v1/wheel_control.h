@@ -6,11 +6,11 @@
 
 // Constantes para control P, PI o PID
 //RUEDA 1
-#define KP_0 0.05
+#define KP_0 0.045
 #define KI_0 0.0003
 #define KD_0 0.002
 //RUEDA 2
-#define KP_1 0.055
+#define KP_1 0.045
 #define KI_1 0.0003
 #define KD_1 0.002
 //RUEDA 3
@@ -18,7 +18,7 @@
 #define KI_2 0.0003
 #define KD_2 0.002
 // RUEDA 4
-#define KP_3 0.055
+#define KP_3 0.05
 #define KI_3 0.0003
 #define KD_3 0.002
 // defines 3 vectors that contain all constants of pid for each wheel
@@ -60,11 +60,11 @@ extern const uint8_t RAWANGLE_L;
 
 // Límites del PID, velocidad angular máxima y algunos parámetros
 #define MAX_ANGULAR_SPEED 400
-#define TOTAL_TIME 10 // Para el PID 1/T  donde T es el tiempo total entre errores calculados-> T = TIME_WINDOW_US*4
+#define TOTAL_TIME 20 // Para el PID 1/T  donde T es el tiempo total entre errores calculados-> T = TIME_WINDOW_US*4
 // Conversión de grados a radianes y ventana de tiempo para calcular la velocidad angular
-#define SAMPLING_TIME 800 // Time in microseconds to sample encoder angle
-#define TIME_WINDOW_US 25000  // Time window in microseconds for calculating the angular velocity of a single encoder
-#define INV_TIME_WINDOW_S 40  // [s^-1] Inverso de TIME_WINDOW_US, convertido a segundos y calculado como 1 / TIME_WINDOW_US
+#define SAMPLING_TIME 625 // Time in microseconds to sample encoder angle
+#define TIME_WINDOW_US 12500  // Time window in microseconds for calculating the angular velocity of a single encoder
+#define INV_TIME_WINDOW_S 80  // [s^-1] Inverso de TIME_WINDOW_US, convertido a segundos y calculado como 1 / TIME_WINDOW_US
 #define TO_RAD(angle, turns) (((turns * 2.0) + (angle / 180.0)) * 3.141592) // convert degrees to radians
 
 // for calculate angle

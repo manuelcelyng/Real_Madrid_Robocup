@@ -108,19 +108,19 @@ void adjustPWM(){
     }
 
     DutyCycle duty_aux = {750,750,750,750};
-    if (duty[0]> 770 || duty[0]<730)
+    if (duty[0]> 760 || duty[0]<740)
     {
         duty_aux[0] = duty[0];
     }
-    if (duty[1]> 770 || duty[1]<730)
+    if (duty[1]> 760 || duty[1]<740)
     {
         duty_aux[1] = duty[1];
     }
-    if (duty[2]> 770 || duty[2]<730)
+    if (duty[2]> 760 || duty[2]<740)
     {
         duty_aux[2] = duty[2];
     }
-    if (duty[3]> 770 || duty[3]<730)
+    if (duty[3]> 760 || duty[3]<740)
     {
         duty_aux[3] = duty[3];
     }

@@ -136,9 +136,9 @@ int main(){
         
 
         desiredSpeed[0] = -1*dteta[3][0];  // RUEDA 1
-        desiredSpeed[1] = -1*dteta[0][0];  // RUEDA 2
-        desiredSpeed[2] = dteta[2][0];  // RUEDA 3
-        desiredSpeed[3] = dteta[1][0];  // RUEDA 4
+        desiredSpeed[1] = 1*dteta[0][0];  // RUEDA 2
+        desiredSpeed[2] = 1*dteta[2][0];  // RUEDA 3
+        desiredSpeed[3] = -1*dteta[1][0];  // RUEDA 4
     
         sem_release(&sem2);
      }
@@ -150,6 +150,10 @@ int main(){
 // CORE 1
 void main2() {
 
+    // desiredSpeed[0] = 150;
+    // desiredSpeed[1] = 150;
+    // desiredSpeed[2] = -150;
+    // desiredSpeed[3] = -150;
 
     AngleData startAngle; // struct with all start angles
     // measure the time in microseconds with function time_us_64()
@@ -233,7 +237,6 @@ void main2() {
 
         calcularControlPID();  
         adjustPWM();
-
         sem_release(&sem1); // Liberar el semáforo sem1
         
         
