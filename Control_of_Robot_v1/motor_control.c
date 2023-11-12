@@ -39,27 +39,21 @@ void initMotor(uint8_t PWM_GPIO){
 }
 
 // la que llama el bluetooth
-void moverMotor(char* buffer){
-    if(buffer[0] =='z'){
-        //printf("ENTRO %s", buffer[0]);
-        
-        // INICIAR EJECUCION 90 GRADOS
-       
+void moverMotor(char* move, int value1, int value2){
+    // strcmp(move, "T")        // Si se quiere comparar una cadena más larga en el if que no sea de un solo caracter
+    // Movimiento GIRO, utilizar value1, es el valor del ÁNGULO
+    if(move[0] == 'T') {
+        printf("GIRO %d\n", value1);
     }
-    if(buffer[0] =='s'){
-        //printf("ENTRO %c", buffer[0]);
-        
-        // INICIAR EJECUCION 180 GRADOS
+
+    // Movimiento DESPLAZAMIENTO, utilizar value1, es el valor de la DISTANCIA
+    if(move[0] == 'D') {
+        printf("DESPLAZAMIENTO %d\n", value1);
     }
-    if(buffer[0] =='a'){
-        //printf("ENTRO %s", buffer[0]);
-        
-        // MOVIMIENTO LINEA RECTA - VER COMO IMPLEMENTAR (DISTANCIA QUE RECORRE ¿?)
-    }
-    if(buffer[0] =='b'){
-        //printf("ENTRO %c", buffer[0]);
-        
-        // MOVIMIENTO DE ARCO, DADO EL RADIO Y LOS GRADOS.
+
+    // Movimiento DESPLAZAMIENTO CIRCULAR, utilizar value1 es el RADIO, value2 es el ÁNGULO
+    if(move[0] == 'C') {
+        printf("DESPLAZAMIENTO CIRCULAR %d, %d\n", value1, value2);
     }
 }
 

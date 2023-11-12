@@ -19,26 +19,25 @@ char buffer[BUFFER_SIZE]= {0};
 
 void uart_rx_handler() {
     irq_clear(UART1_IRQ);
-    char *miCadena = (char *)malloc(20 * sizeof(char));
-    // uart_read_blocking(uart1, (uint8_t *)buffer, BUFFER_SIZE - 1);
+    char data;
+   
     while (uart_is_readable(uart1)) {    
-        char data = uart_getc(uart1);
-        // printf("Command: %c\n", data);
-        if (data != '\n')
-        {
+        while ((data = uart_getc(uart1)) != '\n') {        
             buffer[buffer_index++] = data;
-        } else {
-            buffer[buffer_index] = '\0';
-            //printf("Command: %s\n", buffer);
-            strcpy(miCadena,  buffer);
-            printf("La cadena es: %s\n", miCadena);
-            moverMotor(miCadena);
-            // Puntero al buffer de nuevo al inicio
-            buffer_index  = 0;
         }
+        buffer[buffer_index] = '\0';
+        
+        // Estructura recibida move;value1;value2
+        // La función strtok es un puntero que busca un delimitador en este caso ;, y almacena este todo el tamaño desde donde empieza hasta el delimitador
+        char *move = strtok(buffer, ";");
+        
+        // La función strtok guardainternamente donde terminó en la anterior busqueda por lo que se manda el parametro nulo y el delimitador
+        int value1 = atoi(strtok(NULL, ";"));       // Como se sabe que son números, se convierte a entero, si se quiere double >> double numero = strtod(strtok(buffer, ";"), NULL);
+        int value2 = atoi(strtok(NULL, ";"));
+        
+        moverMotor(move, value1, value2);
+        buffer_index = 0;
     }
-    
-    free(miCadena);
 }
 
 void initUart(uint8_t gpio_tx ,uint8_t gpio_rx){
