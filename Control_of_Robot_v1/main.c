@@ -18,7 +18,6 @@
 semaphore_t sem1;
 semaphore_t sem2;
 
-int flag_pwm = 0;
 void main2();
 
 int main(){
@@ -36,16 +35,11 @@ int main(){
     // Initialize I2C and check magnetPresent in encoders
     initI2C(); // initialize I2C, pins are defined in encoder.h
     checkMagnetPresent(); // block until magnet is found in required state for all encoders, afte it , i2c encoders 2 and 4 are active
-    gpio_set_function(ENCODER_I2C_SCL_PIN_1, GPIO_FUNC_NULL);
-    gpio_set_function(ENCODER_I2C_SDA_PIN_1,  GPIO_FUNC_NULL);
-    gpio_set_function(IMU_I2C_SDA_PIN, GPIO_FUNC_I2C);
-    gpio_set_function(IMU_I2C_SCL_PIN,  GPIO_FUNC_I2C);
-    mpu6050_reset(); 
-    gpio_set_function(IMU_I2C_SDA_PIN, GPIO_FUNC_NULL);
-    gpio_set_function(IMU_I2C_SCL_PIN,  GPIO_FUNC_NULL);
-    gpio_set_function(ENCODER_I2C_SCL_PIN_1, GPIO_FUNC_I2C);
-    gpio_set_function(ENCODER_I2C_SDA_PIN_1,  GPIO_FUNC_I2C);
-   
+
+
+    mpu6050_reset();  // IMU IN I2C0
+
+
     initUart(GPIO_UART_TX, GPIO_UART_RX); // initialize BLUETOoth
     
     // inicializo el otro core 
@@ -71,8 +65,10 @@ int main(){
     long double ang_z_prev = 0;
     while (1) {
 
+        //tight_loop_contents();
         sem_acquire_blocking(&sem1); // Adquirir el semáforo sem1
-        adjustPWM();
+
+        mpu6050_read_raw(&gyro);
 
         dt = (time_us_32()-tiempo_prev);
         tiempo_prev=time_us_32();
@@ -80,15 +76,15 @@ int main(){
         //Calcular angulo de rotación con giroscopio 
         if(gyro > 60 | gyro < -60){ 
             ang_z = gyro*dt;
-            //ang_z /= 131072000.0;
-            ang_z /= 7509877799.0;
+            //ang_z /= 16400000.0;
+            ang_z /= 939650784.0;
             ang_z += ang_z_prev;
             ang_z_prev=ang_z;
         }
-        //printf("Rotacion en Z:  ");
-        //printf("%d  ", dt);
-        //printf("%d  ", gyro);
-        //printf("%f  \n", ang_z);
+        printf("Rotacion en Z:  ");
+        printf("%d  ", dt);
+        printf("%d  ", gyro);
+        printf("%f  \n", ang_z);
 
         float t_i = (time_us_64()-offset_time)*1e-6;
 
@@ -135,21 +131,15 @@ int main(){
         }
         printf("%f,%f,%f,%f\n",dteta[0][0], dteta[1][0], dteta[2][0], dteta[3][0]);
         
-        desiredSpeed[0] = dteta[0][0];  // RUEDA 1
-        desiredSpeed[1] = dteta[2][0];  // RUEDA 3
-        desiredSpeed[2] = dteta[1][0];  // RUEDA 2 
-        desiredSpeed[3] = dteta[3][0]; // RUEDA 4
-        gpio_set_function(ENCODER_I2C_SCL_PIN_1, GPIO_FUNC_NULL);
-        gpio_set_function(ENCODER_I2C_SDA_PIN_1, GPIO_FUNC_NULL);
-        gpio_set_function(IMU_I2C_SCL_PIN, GPIO_FUNC_I2C);
-        gpio_set_function(IMU_I2C_SDA_PIN, GPIO_FUNC_I2C);
-       
-        mpu6050_read_raw(&gyro);
 
-        gpio_set_function(IMU_I2C_SCL_PIN, GPIO_FUNC_NULL);
-        gpio_set_function(IMU_I2C_SDA_PIN, GPIO_FUNC_NULL);
-        gpio_set_function(ENCODER_I2C_SCL_PIN_1, GPIO_FUNC_I2C);
-        gpio_set_function(ENCODER_I2C_SDA_PIN_1, GPIO_FUNC_I2C);
+     
+        
+
+        desiredSpeed[0] = -1*dteta[3][0];  // RUEDA 1
+        desiredSpeed[1] = 1*dteta[0][0];  // RUEDA 2
+        desiredSpeed[2] = 1*dteta[2][0];  // RUEDA 3
+        desiredSpeed[3] = -1*dteta[1][0];  // RUEDA 4
+    
         sem_release(&sem2);
      }
 
@@ -160,24 +150,24 @@ int main(){
 // CORE 1
 void main2() {
 
-    i2c_inst_t *selI2c;
-    // desiredSpeed[0] = 200;  // RUEDA 1
-    // desiredSpeed[1] = -200;  // RUEDA 3
-    // desiredSpeed[2] = 0;  // RUEDA 2 
-    // desiredSpeed[3] = 0; // RUEDA 4
+    // desiredSpeed[0] = 150;
+    // desiredSpeed[1] = 150;
+    // desiredSpeed[2] = -150;
+    // desiredSpeed[3] = -150;
 
     AngleData startAngle; // struct with all start angles
-    uint8_t encoder = 0;
     // measure the time in microseconds with function time_us_64()
     uint64_t current_micros = 0;
     uint64_t previous_micros = 0;
     uint64_t ayudamedios = 0;
 
+    // to control when the wheel is stopped
     double previousAngle = 0;
 
     
 
     while(true){
+
         sem_acquire_blocking(&sem2); // Adquirir el semáforo sem2
         
         
@@ -186,22 +176,20 @@ void main2() {
             switch(i)
             {
             case 0:
-                selI2c =  i2c0;
+                switchI2c(ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0, ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3);
                 break;
             case 1:
-                switchI2c(ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2, ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0);
-                selI2c =  i2c1;
+                switchI2c(ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1, ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0);
                 break;
             case 2:
-                switchI2c(ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3, ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1);
-                selI2c =  i2c0;
+                switchI2c(ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2, ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1);
                 break;
             case 3: 
-                selI2c =  i2c1;
+                switchI2c(ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3, ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2);
                 break;
             }  
 
-            // Reinicion variables globales necesarias
+            // Reinicio variables globales necesarias
             numberTurns = 0;
             flagHelp  = 0;
             previousQuadrantNumber = 0;
@@ -209,7 +197,7 @@ void main2() {
             previous_micros =  time_us_64();
             ayudamedios = time_us_64();
              // start angle offset
-            obtainAngle(selI2c,0);
+            obtainAngle(0);
             startAngle[i] = correctedAngle;
            
             while (true)
@@ -219,7 +207,7 @@ void main2() {
                 if(((current_micros - ayudamedios)) >= SAMPLING_TIME){
                     ayudamedios = current_micros;
                     previousAngle = correctedAngle;
-                    obtainAngle(selI2c, startAngle[i]);   
+                    obtainAngle(startAngle[i]);   
                 }
                 
                 if((current_micros - previous_micros) >= TIME_WINDOW_US){
@@ -246,13 +234,12 @@ void main2() {
             
             
         }
-        
-        switchI2c(ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0, ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2);
-        switchI2c(ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1, ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3);
+
         calcularControlPID();  
-
+        adjustPWM();
         sem_release(&sem1); // Liberar el semáforo sem1
-
+        
+        
 
     } // end of while(1)
 }

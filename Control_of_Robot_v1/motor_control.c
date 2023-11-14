@@ -39,37 +39,21 @@ void initMotor(uint8_t PWM_GPIO){
 }
 
 // la que llama el bluetooth
-void moverMotor(char* buffer){
-    if(buffer[0] =='z'){
-        //printf("ENTRO %s", buffer[0]);
-        
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 780);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 780);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 780);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 780);
-       
+void moverMotor(char* move, int value1, int value2){
+    // strcmp(move, "T")        // Si se quiere comparar una cadena más larga en el if que no sea de un solo caracter
+    // Movimiento GIRO, utilizar value1, es el valor del ÁNGULO
+    if(move[0] == 'T') {
+        printf("GIRO %d\n", value1);
     }
-    if(buffer[0] =='s'){
-        //printf("ENTRO %c", buffer[0]);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 750);
-        // sleep_ms(1000);
+
+    // Movimiento DESPLAZAMIENTO, utilizar value1, es el valor de la DISTANCIA
+    if(move[0] == 'D') {
+        printf("DESPLAZAMIENTO %d\n", value1);
     }
-    if(buffer[0] =='a'){
-        //printf("ENTRO %s", buffer[0]);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 680);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 680);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 680);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 680);
-    }
-    if(buffer[0] =='b'){
-        //printf("ENTRO %c", buffer[0]);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, 750);
-        pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, 750);
+
+    // Movimiento DESPLAZAMIENTO CIRCULAR, utilizar value1 es el RADIO, value2 es el ÁNGULO
+    if(move[0] == 'C') {
+        printf("DESPLAZAMIENTO CIRCULAR %d, %d\n", value1, value2);
     }
 }
 
@@ -103,8 +87,8 @@ void initMotorControl(){
 void adjustPWM(){
     
     // pid[0] -> RUEDA 1
-    // pid[1] -> RUEDA 3
-    // pid[2] -> RUEDA 2  
+    // pid[1] -> RUEDA 2
+    // pid[2] -> RUEDA 3  
     // pid[3] -> RUEDA 4 
     for(int i = 0 ; i<4; i++){
         duty[i] =  duty[i] + (int)pid[i];
@@ -116,22 +100,24 @@ void adjustPWM(){
             duty[i] = MIN_DUTY;
         }        
     }
+
     DutyCycle duty_aux = {750,750,750,750};
-    if (duty[0]> 770 || duty[0]<730)
+    if (duty[0]> 760 || duty[0]<740)
     {
         duty_aux[0] = duty[0];
     }
-    if (duty[1]> 770 || duty[1]<730)
+    if (duty[1]> 760 || duty[1]<740)
     {
         duty_aux[1] = duty[1];
     }
-    if (duty[2]> 770 || duty[2]<730)
+    if (duty[2]> 760 || duty[2]<740)
     {
         duty_aux[2] = duty[2];
     }
-    if (duty[3]> 770 || duty[3]<730)
+    if (duty[3]> 760 || duty[3]<740)
     {
         duty_aux[3] = duty[3];
     }
-    setDutyxPID(duty_aux[0], duty_aux[2], duty_aux[1], duty_aux[3]);
+    setDutyxPID(duty_aux[0], duty_aux[1], duty_aux[2], duty_aux[3]);
+
 }

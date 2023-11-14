@@ -58,8 +58,8 @@ void initI2C(){
     gpio_pull_up(ENCODER_I2C_SCL_PIN_0);
 
     // configura 2 encoder 
-    gpio_set_function(ENCODER_I2C_SDA_PIN_1, GPIO_FUNC_I2C);
-    gpio_set_function(ENCODER_I2C_SCL_PIN_1, GPIO_FUNC_I2C);
+    gpio_set_function(ENCODER_I2C_SDA_PIN_1, GPIO_FUNC_NULL);
+    gpio_set_function(ENCODER_I2C_SCL_PIN_1, GPIO_FUNC_NULL);
     // coloca en pull up 
     gpio_pull_up(ENCODER_I2C_SDA_PIN_1);
     gpio_pull_up(ENCODER_I2C_SCL_PIN_1);
@@ -78,9 +78,10 @@ void initI2C(){
     gpio_pull_up(ENCODER_I2C_SDA_PIN_3);
     gpio_pull_up(ENCODER_I2C_SCL_PIN_3);
 
-    // configura la imu
-    gpio_set_function(IMU_I2C_SDA_PIN, GPIO_FUNC_NULL);
-    gpio_set_function(IMU_I2C_SCL_PIN,  GPIO_FUNC_NULL);
+     // configura la imu
+    gpio_set_function(IMU_I2C_SDA_PIN,  GPIO_FUNC_I2C);
+    gpio_set_function(IMU_I2C_SCL_PIN,  GPIO_FUNC_I2C);
+
     gpio_pull_up(IMU_I2C_SDA_PIN);
     gpio_pull_up(IMU_I2C_SCL_PIN);
 
@@ -125,28 +126,31 @@ void checkMagnetPresent(){
     // const uint8_t statuscoso  = 0x0b;
 
     for(int equisde = 0 ;  equisde<4 ;  equisde++){
+
         magnedStatus = 0;
         
         switch (equisde)
         {
+
+        case 0:
+            switchI2c(ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0, ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3);
+            break;  
         case 1:
-            switchI2c(ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2, ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0);
+            switchI2c(ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1, ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0);
             break;
         case 2:
-             switchI2c(ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3, ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1);
+            switchI2c(ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2, ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1);
+            break;
+        case 3:
+            switchI2c(ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3, ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2);
             break;
         }
 
         while ((magnedStatus&32)!= 32) // while the magnet is not adjusted to the proper distante - 32 : MD=1
         {
-            if(equisde == 0 || equisde ==1){
-                i2c_write_blocking(i2c1, ENCODER_ADDR,&STATUS,1, true); // send for read data in Register Status
-                i2c_read_blocking(i2c1, ENCODER_ADDR, &magnedStatus,1,false); // Read data sended from encoder status register
-
-            }else{
-                i2c_write_blocking(i2c1, ENCODER_ADDR,&STATUS,1, true); // send for read data in Register Status
-                i2c_read_blocking(i2c1, ENCODER_ADDR, &magnedStatus,1,false); // Read data sended from encoder status register
-            }
+            
+            i2c_write_blocking(i2c1, ENCODER_ADDR,&STATUS,1, true); // send for read data in Register Status
+            i2c_read_blocking(i2c1, ENCODER_ADDR, &magnedStatus,1,false); // Read data sended from encoder status register
            
             printf("value is for encoder %d : %d\n", equisde+1 ,magnedStatus);
             sleep_ms(10);
@@ -158,17 +162,13 @@ void checkMagnetPresent(){
 
         
     }
-    switchI2c(ENCODER_I2C_SDA_PIN_0,ENCODER_I2C_SCL_PIN_0, ENCODER_I2C_SDA_PIN_2,ENCODER_I2C_SCL_PIN_2);
-    switchI2c(ENCODER_I2C_SDA_PIN_1,ENCODER_I2C_SCL_PIN_1, ENCODER_I2C_SDA_PIN_3,ENCODER_I2C_SCL_PIN_3);
-
-    
     
 
 }
 
 
 // The main function for calculate angule in the wheel
-void obtainAngle(i2c_inst_t * a, double startAngle){
+void obtainAngle( double startAngle){
 
     // buffer[0] 0000000000001111  -> encoder send us bits 8:11
     // 0000000011111111[1]  -> encoder send us bits 0:7   // TOTAL 12 BITS INFORMATION
@@ -177,12 +177,12 @@ void obtainAngle(i2c_inst_t * a, double startAngle){
 
     
     // info de los registros y los estados del enconder. 
-    i2c_write_blocking(a, ENCODER_ADDR,&RAWANGLE_L,1, true);
-    i2c_read_blocking(a, ENCODER_ADDR, &buffer[1],1,false);
+    i2c_write_blocking(i2c1, ENCODER_ADDR,&RAWANGLE_L,1, true);
+    i2c_read_blocking(i2c1, ENCODER_ADDR, &buffer[1],1,false);
 
     // info de los registros y los estados del enconder. 
-    i2c_write_blocking(a, ENCODER_ADDR,&RAWANGLE_H,1, true);
-    i2c_read_blocking(a, ENCODER_ADDR, &buffer[0],1,false);
+    i2c_write_blocking(i2c1, ENCODER_ADDR,&RAWANGLE_H,1, true);
+    i2c_read_blocking(i2c1, ENCODER_ADDR, &buffer[0],1,false);
 
     // obtain the angle and print
    

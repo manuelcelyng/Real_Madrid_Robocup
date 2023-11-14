@@ -84,7 +84,7 @@ void control(float e[3][1], float ek[3][1], float q[3][1], float uk[3][1], float
     // Calculate u
     float u[3][1];
     for (int i = 0; i < 3; i++) {
-        u[i][0] = uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
+        u[i][0] = kc* e[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
     }
 
     // Calculate the inverse of R
