@@ -140,8 +140,8 @@ void checkMagnetPresent(){
         while ((magnedStatus&32)!= 32) // while the magnet is not adjusted to the proper distante - 32 : MD=1
         {
             if(equisde == 0 || equisde ==1){
-                i2c_write_blocking(i2c0, ENCODER_ADDR,&STATUS,1, true); // send for read data in Register Status
-                i2c_read_blocking(i2c0, ENCODER_ADDR, &magnedStatus,1,false); // Read data sended from encoder status register
+                i2c_write_blocking(i2c1, ENCODER_ADDR,&STATUS,1, true); // send for read data in Register Status
+                i2c_read_blocking(i2c1, ENCODER_ADDR, &magnedStatus,1,false); // Read data sended from encoder status register
 
             }else{
                 i2c_write_blocking(i2c1, ENCODER_ADDR,&STATUS,1, true); // send for read data in Register Status
