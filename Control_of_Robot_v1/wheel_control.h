@@ -59,7 +59,7 @@ extern const uint8_t RAWANGLE_H;
 extern const uint8_t RAWANGLE_L;
 
 // Límites del PID, velocidad angular máxima y algunos parámetros
-#define MAX_ANGULAR_SPEED 400
+#define MAX_ANGULAR_SPEED 200
 #define TOTAL_TIME 20 // Para el PID 1/T  donde T es el tiempo total entre errores calculados-> T = TIME_WINDOW_US*4
 // Conversión de grados a radianes y ventana de tiempo para calcular la velocidad angular
 #define SAMPLING_TIME 625 // Time in microseconds to sample encoder angle
