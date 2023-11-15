@@ -59,15 +59,17 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
     dq[2][0] = R[2][0] * U[0][0] + R[2][1] * U[1][0] + R[2][2] * U[2][0];
 }
 
-void control(float e[3][1], float ek[3][1], float q[3][1], float uk[3][1], float U[3][1]) {
+void control(float e[3][1], float ek[3][1], float ek2[3][1], float q[3][1], float uk[3][1], float U[3][1]) {
     float kc = 100;
     float v_max = 10.0;
     float w_max = 2;
     float ti = 0.01;
-    float ts = 0.01;
+    float ts = 0.06;
+    float td = 0.001;
     float phi = q[2][0];
-    float q0 = kc * (1 + ts / (2 * ti));
-    float q1 = -kc * (1 - ts / (2 * ti));
+    float q0 = kc * (1 + ts / (2 * ti) + td / ts);
+    float q1 = -kc * (1 - ts / (2 * ti) + 2*td / ts);
+    float q2 = -kc *td/ts;
     float k[3][1] = {{1}, {1}, {0.01}};
     
     // Calculate the rotation matrix R
@@ -85,7 +87,7 @@ void control(float e[3][1], float ek[3][1], float q[3][1], float uk[3][1], float
     // Calculate u
     float u[3][1];
     for (int i = 0; i < 3; i++) {
-        u[i][0] = kc* e[i][0]*k[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
+        u[i][0] = (q0 * e[i][0] + q1 * ek[i][0] + q2 * ek2[i][0])*k[i][0] + uk[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
     }
 
     // Calculate the inverse of R
