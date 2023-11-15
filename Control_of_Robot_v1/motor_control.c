@@ -101,23 +101,24 @@ void adjustPWM(){
         }        
     }
 
-    DutyCycle duty_aux = {750,750,750,750};
-    if (duty[0]> 760 || duty[0]<740)
+    /*DutyCycle duty_aux = {750,750,750,750};
+    if (duty[0]> 750 || duty[0]<750)
     {
         duty_aux[0] = duty[0];
     }
-    if (duty[1]> 760 || duty[1]<740)
+    if (duty[1]> 750 || duty[1]<750)
     {
         duty_aux[1] = duty[1];
     }
-    if (duty[2]> 760 || duty[2]<740)
+    if (duty[2]> 750 || duty[2]<740)
     {
         duty_aux[2] = duty[2];
     }
     if (duty[3]> 760 || duty[3]<740)
     {
         duty_aux[3] = duty[3];
-    }
-    setDutyxPID(duty_aux[0], duty_aux[1], duty_aux[2], duty_aux[3]);
+    }*/
+    setDutyxPID(duty[0], duty[1], duty[2], duty[3]);
+    printf("%d,%d,%d,%d\n",duty[0], duty[1], duty[2], duty[3]);
 
 }

@@ -39,9 +39,8 @@ int main(){
 
     mpu6050_reset();  // IMU IN I2C0
 
+    //initUart(GPIO_UART_TX, GPIO_UART_RX); // initialize BLUETOoth
 
-    initUart(GPIO_UART_TX, GPIO_UART_RX); // initialize BLUETOoth
-    
     // inicializo el otro core 
     multicore_launch_core1(main2); 
 
@@ -90,7 +89,7 @@ int main(){
 
         // Calculate qd
         float qd[3][1];
-        qd[0][0] = q[0][0]-0.1;//-4*sinf(b * t_i)*sinf(b * t_i);
+        qd[0][0] = q[0][0]-0.0;//-4*sinf(b * t_i)*sinf(b * t_i);
         qd[1][0] = 0;//2*sinf(b * t_i);
         qd[2][0] = 0;
 
@@ -122,23 +121,23 @@ int main(){
             q[j][0] += dq[j][0] * delta;
         }
 
-        printf("%f,%f,%f,%f\n",dteta[0][0], dteta[1][0], dteta[2][0], dteta[3][0]);
-        for (int j = 0; j < 4; j++) {
-            if (-150< dteta[j][0] && dteta[j][0] < 150)
+        //printf("%f,%f,%f,%f\n",dteta[0][0], dteta[1][0], dteta[2][0], dteta[3][0]);
+        /*for (int j = 0; j < 4; j++) {
+            if (-100< dteta[j][0] && dteta[j][0] < 100)
             {
                 dteta[j][0] = 0;
             }
-        }
+        }*/
         printf("%f,%f,%f,%f\n",dteta[0][0], dteta[1][0], dteta[2][0], dteta[3][0]);
         
 
      
         
 
-        desiredSpeed[0] = -1*dteta[3][0];  // RUEDA 1
-        desiredSpeed[1] = 1*dteta[0][0];  // RUEDA 2
-        desiredSpeed[2] = 1*dteta[2][0];  // RUEDA 3
-        desiredSpeed[3] = -1*dteta[1][0];  // RUEDA 4
+        desiredSpeed[0] = dteta[0][0];  // RUEDA 1
+        desiredSpeed[1] = dteta[3][0];  // RUEDA 2
+        desiredSpeed[2] = dteta[2][0];  // RUEDA 3
+        desiredSpeed[3] = dteta[1][0];  // RUEDA 4
     
         sem_release(&sem2);
      }
