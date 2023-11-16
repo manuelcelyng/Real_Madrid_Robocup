@@ -119,6 +119,6 @@ void adjustPWM(){
         duty_aux[3] = duty[3];
     }*/
     setDutyxPID(duty[0], duty[1], duty[2], duty[3]);
-    printf("%d,%d,%d,%d\n",duty[0], duty[1], duty[2], duty[3]);
+    //printf("%d,%d,%d,%d\n",duty[0], duty[1], duty[2], duty[3]);
 
 }

@@ -23,6 +23,11 @@ PIDErrorData pidPreviousError = {0.0, 0.0, 0.0, 0.0};
 2 -> Rueda 2
 3 -> Rueda 4
 */
+// CONSTANTES
+ConstantsP constansP_C = {KP_0, KP_1, KP_2, KP_3};
+ConstantsI constansI_C = {KI_0, KI_1, KI_2, KI_3};
+ConstantsD constansD_C = {KD_0, KD_1, KD_2, KD_3};
+// CONSTANTES ADAPTATIVAS
 ConstantsP constansP = {KP_0, KP_1, KP_2, KP_3};
 ConstantsI constansI = {KI_0, KI_1, KI_2, KI_3};
 ConstantsD constansD = {KD_0, KD_1, KD_2, KD_3};
@@ -48,7 +53,7 @@ bool reserved_addr(uint8_t addr) {
 
 void initI2C(){
     // configure with speed mode plus -> 1000kbps for i2c0 and i2c1
-    i2c_init(i2c_default, 1000 * 1000);
+    i2c_init(i2c_default, 400 * 1000);
     i2c_init(i2c1, 1000 * 1000);
     // configura 1 encoder y lo deja listo para el inicio de lectura.
     gpio_set_function(ENCODER_I2C_SDA_PIN_0, GPIO_FUNC_I2C);
