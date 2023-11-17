@@ -19,14 +19,21 @@ semaphore_t sem1;
 semaphore_t sem2;
 long double ang_z = 0;
 
+// Mutex para proteger el acceso a la variable compartida
+static mutex_t my_mutex ;
+// Esta es la variable compartida
+long double ang_z = 0;
+
 void main2();
 
 int main(){
     stdio_init_all();
 
       // Inicializar los semáforos
-    sem_init(&sem1, 0, 1); // Inicializa sem1 con 1 permiso
-    sem_init(&sem2, 1, 1); // Inicializa sem2 con cero permisos
+    // sem_init(&sem1, 0, 1); // Inicializa sem1 con 1 permiso
+    // sem_init(&sem2, 1, 1); // Inicializa sem2 con cero permisos
+    mutex_init(&my_mutex);
+
     // Initialize motor control _ init motors with pwm for stop and init bluetooth
     initMotorControl();
     sleep_ms(3000);
@@ -55,27 +62,31 @@ int main(){
     long double ang_z_prev = 0;
     while (1) {
 
-        //tight_loop_contents();
-        sem_acquire_blocking(&sem1); // Adquirir el semáforo sem1
-
+        printf("entreo a leer el coso");
         mpu6050_read_raw(&gyro);
 
         dt = (time_us_32()-tiempo_prev);
-        tiempo_prev=time_us_32();
+        tiempo_prev = time_us_32();
 
         //Calcular angulo de rotación con giroscopio 
-        if(gyro > 60 | gyro < -60){ 
+        
+        if(gyro > 60 || gyro < -60){ 
+            printf("entreo al mutex");
+            mutex_enter_blocking(&my_mutex);
             ang_z = gyro*dt;
             //ang_z /= 16400000.0;
             ang_z /= 939650784.0;
             ang_z += ang_z_prev;
             ang_z_prev=ang_z;
+            mutex_exit(&my_mutex);
+            
+            
         }
-        printf("Rotacion en Z:  ");
-        printf("%d  ", dt);
-        printf("%d  ", gyro);
-        printf("%f  \n", ang_z);
-        sem_release(&sem2);
+       
+    
+        sleep_ms(10);
+        
+       
      }
 
     return 0;
@@ -111,9 +122,9 @@ void main2() {
     float e[3][1] = {{0}, {0}, {0}};
     uint64_t offset_time = time_us_64();
 
-    while(true){
+    
 
-        sem_acquire_blocking(&sem2); // Adquirir el semáforo sem2
+    while(true){
 
         float t_i = (time_us_64()-offset_time)*1e-6;
 
@@ -129,11 +140,28 @@ void main2() {
             ek[j][0] = e[j][0];
         }
 
+        // ang_Z es la variable que calcula la IMU  TOMA MUTEX
+        mutex_enter_blocking(&my_mutex);
         q[2][0] = ang_z;
+        mutex_exit(&my_mutex);
 
         // Calculate e
         for (int j = 0; j < 3; j++) {
             e[j][0] = qd[j][0] - q[j][0];
+        }
+
+        // CAMBIAMOS LAS CONSTANTES DEL PID
+        for(int i = 0 ; i<4 ; i++){
+            if(e[2][0]<0) {
+                constansP[i] = ((2*PI + e[2][0])/2*PI) + constansP_C[i];
+                // constansI[i] = ((2*PI + e[2][0])/2*PI) + constansI_C[i];
+                // constansD[i] = ((2*PI + e[2][0])/2*PI) + constansD_C[i];
+            }else{
+                constansP[i] = ((2*PI - e[2][0])/2*PI) + constansP_C[i];
+                // constansI[i] = ((2*PI - e[2][0])/2*PI) + constansI_C[i];
+                // constansD[i] = ((2*PI - e[2][0])/2*PI) + constansD_C[i];
+            }
+            
         }
 
         // Call the control function to update U
@@ -233,13 +261,7 @@ void main2() {
 
         calcularControlPID();  
         adjustPWM();
-        sem_release(&sem1); // Liberar el semáforo sem1
-        
         
 
     } // end of while(1)
-}
-
-void imu_c(){
-
 }
