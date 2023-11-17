@@ -89,6 +89,7 @@ void control(float e[3][1], float ek[3][1], float ek2[3][1], float q[3][1], floa
     for (int i = 0; i < 3; i++) {
         u[i][0] = (q0 * e[i][0] + q1 * ek[i][0] + q2 * ek2[i][0])*k[i][0] + uk[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
     }
+    //
 
     // Calculate the inverse of R
     float Rinv[3][3];
