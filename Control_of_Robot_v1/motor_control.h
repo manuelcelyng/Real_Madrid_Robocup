@@ -20,7 +20,7 @@
 #define MIN_DUTY 680
 
 // vector for duty
-typedef int DutyCycle[4];
+typedef double DutyCycle[4];
 extern DutyCycle duty;
 
 // functions

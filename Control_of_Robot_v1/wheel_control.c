@@ -183,7 +183,7 @@ void obtainAngle( double startAngle){
     
     // info de los registros y los estados del enconder. 
     i2c_write_blocking(i2c1, ENCODER_ADDR,&RAWANGLE_L,1, true);
-    i2c_read_blocking(i2c1, ENCODER_ADDR, &buffer[1],1,false);
+    i2c_read_blocking(i2c1, ENCODER_ADDR, &buffer[1],1,true);
 
     // info de los registros y los estados del enconder. 
     i2c_write_blocking(i2c1, ENCODER_ADDR,&RAWANGLE_H,1, true);
@@ -243,16 +243,17 @@ void calcularControlPID(){
     // for all motors
     for(int i=0 ; i<4 ; i++){
         error =  speedData[i] - desiredSpeed[i]; 
-        pidIntegral[i] = pidIntegral[i] + constansI[i]*error;
+        printf("Speed: %f, %d\n", speedData[i], i);
+        pidIntegral[i] = (pidIntegral[i] + constansI[i]*error)/TOTAL_TIME;
         pid[i] = (constansP[i]*error) + pidIntegral[i] +  constansD[i]*((error-(pidPreviousError[i]))*TOTAL_TIME);
         pidPreviousError[i] = error;
 
         // if for contro max speed angular in each wheel
-        if(pid[i] > MAX_ANGULAR_SPEED ){
-            pid[i] = MAX_ANGULAR_SPEED;
-        }else if (pid[i]< -MAX_ANGULAR_SPEED)
+        if(pid[i] > 15 ){
+            pid[i] = 15;
+        }else if (pid[i]< -15)
         {
-            pid[i]  = -MAX_ANGULAR_SPEED;
+            pid[i]  = -15;
         }
         // divided by 4 taking into account the max speed -> only use the 25% of PID calculated
         pid[i] = (pid[i]/4); // considerando que la velocidad deseada es maximo 400 rad/s y lo mapeamos entre 0 y 100
