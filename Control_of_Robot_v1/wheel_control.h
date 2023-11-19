@@ -3,28 +3,35 @@
 #include "hardware/i2c.h"
 #include <inttypes.h> // for pring uint64_t or another type
 
-
+#define PI 3.141592
 // Constantes para control P, PI o PID
 //RUEDA 1
 #define KP_0 0.045
-#define KI_0 0.0003
-#define KD_0 0.002
+#define KI_0 0.0002
+#define KD_0 0.02
 //RUEDA 2
-#define KP_1 0.045
-#define KI_1 0.0003
-#define KD_1 0.002
+#define KP_1 0.045 
+#define KI_1 0.0002
+#define KD_1 0.02
 //RUEDA 3
-#define KP_2 0.05
-#define KI_2 0.0003
-#define KD_2 0.002
+#define KP_2 0.045
+#define KI_2 0.0002
+#define KD_2 0.02
 // RUEDA 4
-#define KP_3 0.05
-#define KI_3 0.0003
-#define KD_3 0.002
+#define KP_3 0.04
+#define KI_3 0.0002
+#define KD_3 0.02
 // defines 3 vectors that contain all constants of pid for each wheel
 typedef double ConstantsP[4];
 typedef double ConstantsI[4];
 typedef double ConstantsD[4];
+
+extern ConstantsP constansP_C;
+extern ConstantsI constansI_C;
+extern ConstantsD constansD_C;
+extern ConstantsP constansP;
+extern ConstantsI constansI;
+extern ConstantsD constansD;
 
 
 // CONSTANT PINS GPIO FOR I2C

@@ -74,6 +74,8 @@ void mpu6050_read_raw(int16_t *gyro) {
     // Now gyro data from reg 0x43 for 6 bytes
     // The register is auto incrementing on each read
     uint8_t val = 0x47;
+    //i2c_write_timeout_us(i2c_default, addr, &val, 1, true, 10000);
+    //i2c_read_timeout_us(i2c_default, addr, buffer, 2, false, 10000);
     i2c_write_blocking(i2c_default, addr, &val, 1, true);
     i2c_read_blocking(i2c_default, addr, buffer, 2, false);  // False - finished with bus
 

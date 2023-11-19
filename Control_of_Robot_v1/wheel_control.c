@@ -23,6 +23,11 @@ PIDErrorData pidPreviousError = {0.0, 0.0, 0.0, 0.0};
 2 -> Rueda 2
 3 -> Rueda 4
 */
+// CONSTANTES
+ConstantsP constansP_C = {KP_0, KP_1, KP_2, KP_3};
+ConstantsI constansI_C = {KI_0, KI_1, KI_2, KI_3};
+ConstantsD constansD_C = {KD_0, KD_1, KD_2, KD_3};
+// CONSTANTES ADAPTATIVAS
 ConstantsP constansP = {KP_0, KP_1, KP_2, KP_3};
 ConstantsI constansI = {KI_0, KI_1, KI_2, KI_3};
 ConstantsD constansD = {KD_0, KD_1, KD_2, KD_3};
@@ -48,7 +53,7 @@ bool reserved_addr(uint8_t addr) {
 
 void initI2C(){
     // configure with speed mode plus -> 1000kbps for i2c0 and i2c1
-    i2c_init(i2c_default, 1000 * 1000);
+    i2c_init(i2c_default, 400 * 1000);
     i2c_init(i2c1, 1000 * 1000);
     // configura 1 encoder y lo deja listo para el inicio de lectura.
     gpio_set_function(ENCODER_I2C_SDA_PIN_0, GPIO_FUNC_I2C);
@@ -178,7 +183,7 @@ void obtainAngle( double startAngle){
     
     // info de los registros y los estados del enconder. 
     i2c_write_blocking(i2c1, ENCODER_ADDR,&RAWANGLE_L,1, true);
-    i2c_read_blocking(i2c1, ENCODER_ADDR, &buffer[1],1,false);
+    i2c_read_blocking(i2c1, ENCODER_ADDR, &buffer[1],1,true);
 
     // info de los registros y los estados del enconder. 
     i2c_write_blocking(i2c1, ENCODER_ADDR,&RAWANGLE_H,1, true);
@@ -238,16 +243,17 @@ void calcularControlPID(){
     // for all motors
     for(int i=0 ; i<4 ; i++){
         error =  speedData[i] - desiredSpeed[i]; 
-        pidIntegral[i] = pidIntegral[i] + constansI[i]*error;
+        printf("Speed: %f, %d\n", speedData[i], i);
+        pidIntegral[i] = (pidIntegral[i] + constansI[i]*error)/TOTAL_TIME;
         pid[i] = (constansP[i]*error) + pidIntegral[i] +  constansD[i]*((error-(pidPreviousError[i]))*TOTAL_TIME);
         pidPreviousError[i] = error;
 
         // if for contro max speed angular in each wheel
-        if(pid[i] > MAX_ANGULAR_SPEED ){
-            pid[i] = MAX_ANGULAR_SPEED;
-        }else if (pid[i]< -MAX_ANGULAR_SPEED)
+        if(pid[i] > 15 ){
+            pid[i] = 15;
+        }else if (pid[i]< -15)
         {
-            pid[i]  = -MAX_ANGULAR_SPEED;
+            pid[i]  = -15;
         }
         // divided by 4 taking into account the max speed -> only use the 25% of PID calculated
         pid[i] = (pid[i]/4); // considerando que la velocidad deseada es maximo 400 rad/s y lo mapeamos entre 0 y 100
