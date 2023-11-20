@@ -4,6 +4,7 @@
 #include "pico/multicore.h"
 #include "pico/sync.h"
 #include "hardware/sync.h"
+#include "hardware/timer.h"
 
 // .h propios.
 #include "motor_control.h"
@@ -15,16 +16,30 @@
 
 
 
+
 semaphore_t sem1;
 semaphore_t sem2;
 
 // Mutex para proteger el acceso a la variable compartida
 static mutex_t my_mutex ;
 static mutex_t my_mutex2;
-// Esta es la variable compartida
-long double ang_z = 0;
 
+// gyro de la IMU y bandera
+int16_t gyro = 0;
+volatile bool timer_fired = false;
+
+//Functions core 1 and timers callback
 void main2();
+
+bool repeating_timer_callback(struct repeating_timer *t) {
+    mutex_enter_blocking(&my_mutex2);
+    mpu6050_read_raw(&gyro);
+    mutex_exit(&my_mutex2);
+    timer_fired =  true;
+
+    return true;
+}
+
 
 int main(){
     stdio_init_all();
@@ -33,27 +48,22 @@ int main(){
     // sem_init(&sem1, 0, 1); // Inicializa sem1 con 1 permiso
     // sem_init(&sem2, 1, 1); // Inicializa sem2 con cero permisos
     mutex_init(&my_mutex);
-     mutex_init(&my_mutex2);
+    mutex_init(&my_mutex2);
 
     // Initialize motor control _ init motors with pwm for stop and init bluetooth
     initMotorControl();
     sleep_ms(3000);
-
-  
-
     // Initialize I2C and check magnetPresent in encoders
     initI2C(); // initialize I2C, pins are defined in encoder.h
     checkMagnetPresent(); // block until magnet is found in required state for all encoders, afte it , i2c encoders 2 and 4 are active
-
-
+    // reset IMU 
     mpu6050_reset();  // IMU IN I2C0
-    int16_t gyro = 0;
-    for (size_t i = 0; i < 20; i++)
+   
+    for (size_t i = 0; i < 40; i++)
     {
         mpu6050_read_raw(&gyro);
         sleep_ms(5);
     }
-    
 
     //initUart(GPIO_UART_TX, GPIO_UART_RX); // initialize BLUETOoth
 
@@ -61,61 +71,7 @@ int main(){
     multicore_launch_core1(main2); 
 
     // CONTROL PID - ROBOT 
-    
-   
-    //Imu variables
-    int32_t tiempo_prev = 0;
-    int32_t dt;
-    long double ang_z_prev = 0;
-    while (1) {
-        
-        mutex_enter_blocking(&my_mutex2);
-        mpu6050_read_raw(&gyro);
-        mutex_exit(&my_mutex2);
-
-        dt = (time_us_32()-tiempo_prev);
-        tiempo_prev = time_us_32();
-
-        //Calcular angulo de rotación con giroscopio 
-
-        
-        if(gyro > 60 || gyro < -60){ 
-            mutex_enter_blocking(&my_mutex);
-            ang_z = gyro*dt;
-            //ang_z /= 16400000.0;
-            ang_z /= 939650784.0;
-            ang_z += ang_z_prev;
-            ang_z_prev=ang_z;
-            mutex_exit(&my_mutex);  
-        }
-        //printf("ang: %f" , ang_z);
-        //printf("gyro: %d\n" , gyro);
-        
-       sleep_ms(5);
-     }
-
-    return 0;
-}
-
-// wait for init from main or core 0
-// CORE 1
-void main2() {
-
-    // desiredSpeed[0] = 150;
-    // desiredSpeed[1] = 150;
-    // desiredSpeed[2] = -150;
-    // desiredSpeed[3] = -150;
-
-    AngleData startAngle; // struct with all start angles
-    // measure the time in microseconds with function time_us_64()
-    uint64_t current_micros = 0;
-    uint64_t previous_micros = 0;
-    uint64_t ayudamedios = 0;
-
-    // to control when the wheel is stopped
-    double previousAngle = 0;
-
-    //control space
+      //control space
     float delta = 0.001;
     float q[3][1] = {{0}, {0}, {0}};
     float T = 30;
@@ -125,17 +81,52 @@ void main2() {
     float uk[3][1] = {{0}, {0}, {0}};
     float e[3][1] = {{0}, {0}, {0}};
     uint64_t offset_time = time_us_64();
-
     
+   
+    //Imu variables
+    int32_t tiempo_prev = 0;
+    int32_t dt;
+    long double ang_z_prev = 0;
+    long double ang_z = 0;
 
-    while(true){
+    // DEFINE THE REPEATING TIMER FOR IMU
+    struct repeating_timer timer;
+    add_repeating_timer_ms(IMU_INTERVAL_TIMER_MS, repeating_timer_callback, NULL, &timer);
+
+    while (1) {
+        
+      
+
+        // dt = (time_us_32()-tiempo_prev);
+        // tiempo_prev = time_us_32();
+
+       
+
+        // Wait for alarm callback to set timer_fired
+        while (!timer_fired)
+        {
+            tight_loop_contents();
+        }
+        timer_fired =  false;
+
+        //Calcular angulo de rotación con giroscopio
+        if(gyro > 60 || gyro < -60){ 
+            ang_z = gyro*IMU_INTERVAL_TIMER_US;
+            //ang_z /= 16400000.0;
+            ang_z /= 939650784.0;
+            ang_z += ang_z_prev;
+            ang_z_prev=ang_z;
+        }
+       
+
+        // CONTROL GENERAL DEL CARRO
 
         float t_i = (time_us_64()-offset_time)*1e-6;
 
         // Calculate qd
         float qd[3][1];
-        qd[0][0] = q[0][0]-0.03;//-4*sinf(b * t_i)*sinf(b * t_i);
-        qd[1][0] = 0;//2*sinf(b * t_i);
+        qd[0][0] = q[0][0];//-4*sinf(b * t_i)*sinf(b * t_i);
+        qd[1][0] = q[1][0]+0.02 ;//2*sinf(b * t_i);
         qd[2][0] = 0;
 
         // Update ek
@@ -144,9 +135,9 @@ void main2() {
         }
 
         // ang_Z es la variable que calcula la IMU  TOMA MUTEX
-        mutex_enter_blocking(&my_mutex);
+        printf("ang: %f\n", ang_z);
         q[2][0] = ang_z;
-        mutex_exit(&my_mutex);
+        
 
         // Calculate e
         for (int j = 0; j < 3; j++) {
@@ -156,13 +147,13 @@ void main2() {
         // CAMBIAMOS LAS CONSTANTES DEL PID
         for(int i = 0 ; i<4 ; i++){
             if(e[2][0]<0) {
-                constansP[i] = ((2*PI + e[2][0])/2*PI) + constansP_C[i];
-                //constansI[i] = ((2*PI + e[2][0])/2*PI) + constansI_C[i];
-                constansD[i] = ((2*PI + e[2][0])/2*PI) + constansD_C[i];
+                constansP[i] = ((2*PI + e[2][0])/5*PI) + constansP_C[i];
+                //constansI[i] = ((2*PI + e[2][0])/10*PI) + constansI_C[i];
+                //constansD[i] = ((2*PI + e[2][0])/15*PI) + constansD_C[i];
             }else {
-                constansP[i] = ((2*PI - e[2][0])/2*PI) + constansP_C[i];
-                //constansI[i] = ((2*PI - e[2][0])/2*PI) + constansI_C[i];
-                constansD[i] = ((2*PI - e[2][0])/2*PI) + constansD_C[i];
+                constansP[i] = ((2*PI - e[2][0])/5*PI) + constansP_C[i];
+                //constansI[i] = ((2*PI - e[2][0])/10*PI) + constansI_C[i];
+                //constansD[i] = ((2*PI - e[2][0])/15*PI) + constansD_C[i];
             }
         }
 
@@ -189,18 +180,43 @@ void main2() {
                 dteta[j][0] = 0;
             }
         }*/
-        //printf("%f,%f,%f,%f\n",dteta[0][0], dteta[1][0], dteta[2][0], dteta[3][0]);
+        printf("%f,%f,%f,%f\n",dteta[0][0], dteta[1][0], dteta[2][0], dteta[3][0]);
         
 
      
         
+        mutex_enter_blocking(&my_mutex);
+        desiredSpeed[0] = dteta[0][0];  // RUEDA 1
+        desiredSpeed[1] = dteta[3][0];  // RUEDA 2
+        desiredSpeed[2] = dteta[2][0];  // RUEDA 3
+        desiredSpeed[3] = dteta[1][0];  // RUEDA 4
+        mutex_exit(&my_mutex);
+        
+     }
 
-        desiredSpeed[0] = dteta[1][0];  // RUEDA 1
-        desiredSpeed[1] = dteta[0][0];  // RUEDA 2
-        desiredSpeed[2] = dteta[3][0];  // RUEDA 3
-        desiredSpeed[3] = dteta[2][0];  // RUEDA 4
-        
-        
+    return 0;
+}
+
+// wait for init from main or core 0
+// CORE 1
+void main2() {
+
+    // desiredSpeed[0] = 150;
+    // desiredSpeed[1] = 150;
+    // desiredSpeed[2] = -150;
+    // desiredSpeed[3] = -150;
+
+    AngleData startAngle; // struct with all start angles
+    // measure the time in microseconds with function time_us_64()
+    uint64_t current_micros = 0;
+    uint64_t previous_micros = 0;
+    uint64_t ayudamedios = 0;
+
+    // to control when the wheel is stopped
+    double previousAngle = 0;
+
+    while(true){
+
         for(int i = 0 ; i<4; i++){
 
             switch(i)
@@ -270,10 +286,12 @@ void main2() {
             
             
         }
-
+        mutex_enter_blocking(&my_mutex);
         calcularControlPID();  
+        mutex_exit(&my_mutex);
         adjustPWM();
         
 
     } // end of while(1)
 }
+

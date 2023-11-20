@@ -219,8 +219,8 @@ void obtainAngle( double startAngle){
 
     // count the turn
     if(aux.quadrantNumber != previousQuadrantNumber){
-        if ((aux.quadrantNumber == 1 && previousQuadrantNumber == 4 && flagHelp) ||
-            (aux.quadrantNumber == 4 && previousQuadrantNumber == 1 && flagHelp)) {
+        if ((aux.quadrantNumber == 1 && previousQuadrantNumber == 4 && flagHelp==2) ||
+            (aux.quadrantNumber == 4 && previousQuadrantNumber == 1 && flagHelp==2)) {
             numberTurns++;
         }
 
@@ -242,18 +242,19 @@ void calcularControlPID(){
     double error = 0; 
     // for all motors
     for(int i=0 ; i<4 ; i++){
+        
         error =  speedData[i] - desiredSpeed[i]; 
-        printf("Speed: %f, %d\n", speedData[i], i);
+        // printf("Speed: %f, %d\n", speedData[i], i);
         pidIntegral[i] = (pidIntegral[i] + constansI[i]*error)/TOTAL_TIME;
         pid[i] = (constansP[i]*error) + pidIntegral[i] +  constansD[i]*((error-(pidPreviousError[i]))*TOTAL_TIME);
         pidPreviousError[i] = error;
 
         // if for contro max speed angular in each wheel
-        if(pid[i] > 15 ){
-            pid[i] = 15;
-        }else if (pid[i]< -15)
+        if(pid[i] > 30){
+            pid[i] = 30;
+        }else if (pid[i]< -30)
         {
-            pid[i]  = -15;
+            pid[i]  = -30;
         }
         // divided by 4 taking into account the max speed -> only use the 25% of PID calculated
         pid[i] = (pid[i]/4); // considerando que la velocidad deseada es maximo 400 rad/s y lo mapeamos entre 0 y 100

@@ -17,7 +17,7 @@
 #define FRECUENCY_ALL_PWM_MOTORS 50
 
 #define MAX_DUTY 800
-#define MIN_DUTY 680
+#define MIN_DUTY 700
 
 // vector for duty
 typedef double DutyCycle[4];

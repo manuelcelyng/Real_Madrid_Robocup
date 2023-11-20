@@ -6,20 +6,20 @@
 #define PI 3.141592
 // Constantes para control P, PI o PID
 //RUEDA 1
-#define KP_0 0.045
-#define KI_0 0.0002
+#define KP_0 0.040
+#define KI_0 0.02
 #define KD_0 0.02
 //RUEDA 2
-#define KP_1 0.045 
-#define KI_1 0.0002
+#define KP_1 0.040
+#define KI_1 0.02
 #define KD_1 0.02
 //RUEDA 3
 #define KP_2 0.045
-#define KI_2 0.0002
+#define KI_2 0.02
 #define KD_2 0.02
 // RUEDA 4
-#define KP_3 0.04
-#define KI_3 0.0002
+#define KP_3 0.045
+#define KI_3 0.02
 #define KD_3 0.02
 // defines 3 vectors that contain all constants of pid for each wheel
 typedef double ConstantsP[4];
@@ -69,7 +69,7 @@ extern const uint8_t RAWANGLE_L;
 #define MAX_ANGULAR_SPEED 200
 #define TOTAL_TIME 20 // Para el PID 1/T  donde T es el tiempo total entre errores calculados-> T = TIME_WINDOW_US*4
 // Conversión de grados a radianes y ventana de tiempo para calcular la velocidad angular
-#define SAMPLING_TIME 625 // Time in microseconds to sample encoder angle
+#define SAMPLING_TIME 1250 // Time in microseconds to sample encoder angle
 #define TIME_WINDOW_US 12500  // Time window in microseconds for calculating the angular velocity of a single encoder
 #define INV_TIME_WINDOW_S 80  // [s^-1] Inverso de TIME_WINDOW_US, convertido a segundos y calculado como 1 / TIME_WINDOW_US
 #define TO_RAD(angle, turns) (((turns * 2.0) + (angle / 180.0)) * 3.141592) // convert degrees to radians

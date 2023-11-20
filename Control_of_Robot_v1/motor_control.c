@@ -92,13 +92,19 @@ void adjustPWM(){
     // pid[3] -> RUEDA 4 
     for(int i = 0 ; i<4; i++){
         duty[i] =  duty[i] + pid[i];
+
+    
+       
         if (duty[i] > MAX_DUTY)
         {
             duty[i] = MAX_DUTY;
-        }else if (duty[i]< MIN_DUTY)
+        }else if (duty[i]< 700)
         {
             duty[i] = MIN_DUTY;
-        }        
+        }   
+         if(duty[i]>752){
+            duty[i]-=2;
+        }     
     }
 
     /*DutyCycle duty_aux = {750,750,750,750};
@@ -119,6 +125,6 @@ void adjustPWM(){
         duty_aux[3] = duty[3];
     }*/
     setDutyxPID((int)duty[0], (int)duty[1], (int)duty[2], (int)duty[3]);
-    //printf("%d,%d,%d,%d\n",duty[0], duty[1], duty[2], duty[3]);
+    //printf("%d,%d,%d,%d\n",(int)duty[0],(int)duty[1], (int)duty[2], (int)duty[3]);
 
 }
