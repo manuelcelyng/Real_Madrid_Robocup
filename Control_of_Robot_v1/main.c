@@ -27,6 +27,8 @@ static mutex_t my_mutex2;
 // gyro de la IMU y bandera
 int16_t gyro = 0;
 volatile bool timer_fired = false;
+volatile bool timer_fired2 = false;
+volatile bool timer_fired21 = false;
 
 //Functions core 1 and timers callback
 void main2();
@@ -36,6 +38,17 @@ bool repeating_timer_callback(struct repeating_timer *t) {
     mpu6050_read_raw(&gyro);
     mutex_exit(&my_mutex2);
     timer_fired =  true;
+
+    return true;
+}
+
+bool repeating_timer_callback2(struct repeating_timer *t) {
+    timer_fired2 =  true;
+    printf("entra timer\n");
+    return true;
+}
+bool repeating_timer_callback21(struct repeating_timer *t) {
+    timer_fired21 =  true;
 
     return true;
 }
@@ -126,7 +139,7 @@ int main(){
         // Calculate qd
         float qd[3][1];
         qd[0][0] = q[0][0];//-4*sinf(b * t_i)*sinf(b * t_i);
-        qd[1][0] = q[1][0]+0.02 ;//2*sinf(b * t_i);
+        qd[1][0] = q[1][0]+0.03 ;//2*sinf(b * t_i);
         qd[2][0] = 0;
 
         // Update ek
@@ -135,7 +148,7 @@ int main(){
         }
 
         // ang_Z es la variable que calcula la IMU  TOMA MUTEX
-        printf("ang: %f\n", ang_z);
+        //printf("ang: %f\n", ang_z);
         q[2][0] = ang_z;
         
 
@@ -148,11 +161,11 @@ int main(){
         for(int i = 0 ; i<4 ; i++){
             if(e[2][0]<0) {
                 constansP[i] = ((2*PI + e[2][0])/5*PI) + constansP_C[i];
-                //constansI[i] = ((2*PI + e[2][0])/10*PI) + constansI_C[i];
+                //constansI[i] = ((2*PI + e[2][0])/15*PI) + constansI_C[i];
                 //constansD[i] = ((2*PI + e[2][0])/15*PI) + constansD_C[i];
             }else {
                 constansP[i] = ((2*PI - e[2][0])/5*PI) + constansP_C[i];
-                //constansI[i] = ((2*PI - e[2][0])/10*PI) + constansI_C[i];
+                //constansI[i] = ((2*PI - e[2][0])/15*PI) + constansI_C[i];
                 //constansD[i] = ((2*PI - e[2][0])/15*PI) + constansD_C[i];
             }
         }
@@ -180,7 +193,7 @@ int main(){
                 dteta[j][0] = 0;
             }
         }*/
-        printf("%f,%f,%f,%f\n",dteta[0][0], dteta[1][0], dteta[2][0], dteta[3][0]);
+        //printf("%f,%f,%f,%f\n",dteta[0][0], dteta[1][0], dteta[2][0], dteta[3][0]);
         
 
      
@@ -201,22 +214,26 @@ int main(){
 // CORE 1
 void main2() {
 
-    // desiredSpeed[0] = 150;
-    // desiredSpeed[1] = 150;
-    // desiredSpeed[2] = -150;
-    // desiredSpeed[3] = -150;
+    // desiredSpeed[0] = -100;
+    // desiredSpeed[1] = -100;
+    // desiredSpeed[2] = -100;
+    // desiredSpeed[3] = -100;
 
     AngleData startAngle; // struct with all start angles
-    // measure the time in microseconds with function time_us_64()
-    uint64_t current_micros = 0;
-    uint64_t previous_micros = 0;
-    uint64_t ayudamedios = 0;
-
     // to control when the wheel is stopped
     double previousAngle = 0;
+    // for calculate start angle offset in the first sample
+    bool startAngle_bool =  false;
+
+    // DEFINE THE REPEATING TIMER FOR CALCULATE THE SPEED ANGULAR
+    struct repeating_timer timer;
+    struct repeating_timer timer2;
+    //add_repeating_timer_us(SAMPLING_TIME, repeating_timer_callback2, NULL, &timer);
+    //add_repeating_timer_us(ENCODER_TIMER_TOTAL_VALUE_US, repeating_timer_callback21, NULL, &timer2);
 
     while(true){
 
+        
         for(int i = 0 ; i<4; i++){
 
             switch(i)
@@ -239,37 +256,37 @@ void main2() {
             numberTurns = 0;
             flagHelp  = 0;
             previousQuadrantNumber = 0;
-            // Inicializo los tiempos
-            previous_micros =  time_us_64();
-            ayudamedios = time_us_64();
-             // start angle offset
-             //MUTEX FOR I2C
-            mutex_enter_blocking(&my_mutex2);
-            obtainAngle(0);
-            mutex_exit(&my_mutex2);
-            startAngle[i] = correctedAngle;
-           
+            correctedAngle = 0;
+            startAngle_bool =  true;
+            add_repeating_timer_us(SAMPLING_TIME, repeating_timer_callback2, NULL, &timer);
+            // printf("RUEDA :%d \n", i+1);
             while (true)
             {
-                current_micros  = time_us_64();
                 
-                if(((current_micros - ayudamedios)) >= SAMPLING_TIME){
-                    ayudamedios = current_micros;
+                if(timer_fired2){
                     previousAngle = correctedAngle;
                     // MUTEX FOR I2C
                     mutex_enter_blocking(&my_mutex2);
-                    obtainAngle(startAngle[i]); 
+                    obtainAngle(startAngle[i],startAngle_bool);
                     mutex_exit(&my_mutex2);  
+                    if(startAngle_bool){
+                        startAngle[i] = correctedAngle;
+                        add_repeating_timer_us(TIME_WINDOW_US, repeating_timer_callback21, NULL, &timer2);
+                        startAngle_bool = false;
+                    }
+                    timer_fired2 = false;
                 }
                 
-                if((current_micros - previous_micros) >= TIME_WINDOW_US){
+                if(timer_fired21){
+                    cancel_repeating_timer(&timer);
                     // Garantizar que cuando no se está moviendo el robot, el angulo calculado sea exactamente 0
                     previousAngle =  correctedAngle-previousAngle;
                     if(previousAngle<0){
                         previousAngle= -1*previousAngle;
                     }
-                    if( previousAngle<=1   ||  (previousAngle)>358 ){
+                    if( previousAngle<=0.1   ||  (previousAngle)>359.9 ){
                         speedData[i] = 0;
+                       
                     }else{
                         
                         if(duty[i]>750){
@@ -279,17 +296,31 @@ void main2() {
                             speedData[i] = (double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S);
                         }
                     }
+
+                    //printf("speedData RUEDA %d : %f \n", i+1 ,  speedData[i] );
+
+                    cancel_repeating_timer(&timer2);
+                    timer_fired21 =  false;
+
+                    // Ajusto la velocidad de una vez;
+                    mutex_enter_blocking(&my_mutex);
+                    calcularControlPID(i);  
+                    mutex_exit(&my_mutex);
+                    adjustPWM(i);
                     // out of while and continue with for with another encoder
+
                     break;
                 }
             }
             
             
         }
-        mutex_enter_blocking(&my_mutex);
-        calcularControlPID();  
-        mutex_exit(&my_mutex);
-        adjustPWM();
+        // mutex_enter_blocking(&my_mutex);
+        // calcularControlPID();  
+        // mutex_exit(&my_mutex);
+        
+
+        sleep_ms(10);
         
 
     } // end of while(1)

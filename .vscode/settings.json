@@ -1,6 +1,14 @@
 {
     "cmake.sourceDirectory": "C:/Users/manue/Documents/Pico-v1.5.1/MisProyectos/Real_Madrid_Robocup/Control_of_Robot_v1",
     "files.associations": {
-        "i2c.h": "c"
+        "i2c.h": "c",
+        "cmath": "c",
+        "compare": "c",
+        "concepts": "c",
+        "exception": "c",
+        "type_traits": "c",
+        "limits": "c",
+        "*.tcc": "c",
+        "typeinfo": "c"
     }
 }
