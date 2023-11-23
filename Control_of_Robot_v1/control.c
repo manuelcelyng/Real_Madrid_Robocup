@@ -68,7 +68,7 @@ void control(float e[3][1], float ek[3][1], float q[3][1], float uk[3][1], float
     float phi = q[2][0];
     float q0 = kc * (1 + ts / (2 * ti));
     float q1 = -kc * (1 - ts / (2 * ti));
-    float k[3][1] = {{0.01}, {0.01}, {0.01}};
+    float k[3][1] = {{1}, {1}, {0.01}};
     
     // Calculate the rotation matrix R
     float R[3][3];

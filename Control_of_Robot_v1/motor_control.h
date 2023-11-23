@@ -17,7 +17,7 @@
 #define FRECUENCY_ALL_PWM_MOTORS 50
 
 #define MAX_DUTY 800
-#define MIN_DUTY 680
+#define MIN_DUTY 700
 
 // vector for duty
 typedef double DutyCycle[4];
@@ -27,7 +27,7 @@ extern DutyCycle duty;
 void initPWM(uint8_t gpio, uint16_t frec);
 void initMotor(uint8_t PWM_GPIO);
 void initMotorControl();
-void adjustPWM();
+void adjustPWM(int i);
 void moverMotor(char* move, int value1, int value2);
 
 #endif // MOTOR_CONTROL_H
