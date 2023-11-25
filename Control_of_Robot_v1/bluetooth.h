@@ -12,6 +12,7 @@ extern volatile uint8_t buffer_index;
 extern char buffer[BUFFER_SIZE];
 
 
+
 // functions
 void uart_rx_handler(void);
 void initUart(uint8_t gpio_tx ,uint8_t gpio_rx);

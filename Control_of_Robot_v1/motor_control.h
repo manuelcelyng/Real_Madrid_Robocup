@@ -23,11 +23,11 @@
 typedef double DutyCycle[4];
 extern DutyCycle duty;
 
+
 // functions
 void initPWM(uint8_t gpio, uint16_t frec);
 void initMotor(uint8_t PWM_GPIO);
 void initMotorControl();
 void adjustPWM(int i);
-void moverMotor(char* move, int value1, int value2);
 
 #endif // MOTOR_CONTROL_H

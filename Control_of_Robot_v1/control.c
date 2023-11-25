@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <math.h>
 
+bool run_command = false;
+int select_movement = 0; // 0 , no hace nada.
+
 void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
     float phi = q[2][0];
     float r = 0.1;
@@ -127,5 +130,35 @@ void control(float e[3][1], float ek[3][1], float q[3][1], float uk[3][1], float
         U[2][0] = -w_max;
     } else {
         U[2][0] = Utemp[2][0];
+    }
+}
+
+
+// Funcion que llama el bluetooth
+void ejecutarMovimiento(char* move, int value1, int value2){
+    // strcmp(move, "T")        // Si se quiere comparar una cadena más larga en el if que no sea de un solo caracter
+    // Movimiento GIRO, utilizar value1, es el valor del ÁNGULO
+    if(move[0] == 'T') {
+        // Giro sobre su propio eje un ángulo determinado ( Parámetros : ángulo)
+        printf("GIRO %d\n", value1);
+        select_movement = 1;
+        run_command =  true;
+    }
+
+    // Movimiento DESPLAZAMIENTO, utilizar value1, es el valor de la DISTANCIA
+    if(move[0] == 'D') {
+        // Desplazamiento en linea recta para diferentes direcciones con relación al frente del robot y durante una distancia determinada ( Parámetros: ángulo y distancia.)
+        printf("DESPLAZAMIENTO %d\n", value1);
+         select_movement = 2;
+        run_command =  true;
+    }
+
+    // Movimiento DESPLAZAMIENTO CIRCULAR, utilizar value1 es el RADIO, value2 es el ÁNGULO
+    if(move[0] == 'C') {
+
+        //  Desplazamiento circular con un radio determinado ( parámetros :  radio ,  ángulo)
+        printf("DESPLAZAMIENTO CIRCULAR %d, %d\n", value1, value2);
+        select_movement = 3;
+        run_command =  true;
     }
 }

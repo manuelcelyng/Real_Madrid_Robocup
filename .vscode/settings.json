@@ -9,6 +9,7 @@
         "type_traits": "c",
         "limits": "c",
         "*.tcc": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "sharedfunctions.h": "c"
     }
 }
