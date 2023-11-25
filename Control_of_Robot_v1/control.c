@@ -87,7 +87,16 @@ void control(float e[3][1], float ek[3][1], float ek2[3][1], float q[3][1], floa
     // Calculate u
     float u[3][1];
     for (int i = 0; i < 3; i++) {
+<<<<<<< HEAD
         u[i][0] = (q0 * e[i][0] + q1 * ek[i][0] + q2 * ek2[i][0])*k[i][0] + uk[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
+=======
+        if (i == 2 && e[i][0]<0.1745 && e[i][0]>-0.1745)
+        {
+            u[i][0] = 0;
+        }else {
+            u[i][0] = kc* e[i][0]*k[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
+        }
+>>>>>>> b88f72f97c76e27e45daede1ad7e941b4e8bdff6
     }
     //
 

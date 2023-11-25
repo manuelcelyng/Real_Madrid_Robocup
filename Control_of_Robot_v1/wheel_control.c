@@ -173,8 +173,8 @@ void checkMagnetPresent(){
 
 
 // The main function for calculate angule in the wheel
-void obtainAngle( double startAngle){
-
+void obtainAngle( double startAngle, bool start){
+    
     // buffer[0] 0000000000001111  -> encoder send us bits 8:11
     // 0000000011111111[1]  -> encoder send us bits 0:7   // TOTAL 12 BITS INFORMATION
     uint8_t buffer[2];  // buffer[0] guarda los más significativos, y buffer[1] guarda los menos significativos.
@@ -183,7 +183,7 @@ void obtainAngle( double startAngle){
     
     // info de los registros y los estados del enconder. 
     i2c_write_blocking(i2c1, ENCODER_ADDR,&RAWANGLE_L,1, true);
-    i2c_read_blocking(i2c1, ENCODER_ADDR, &buffer[1],1,false);
+    i2c_read_blocking(i2c1, ENCODER_ADDR, &buffer[1],1,true);
 
     // info de los registros y los estados del enconder. 
     i2c_write_blocking(i2c1, ENCODER_ADDR,&RAWANGLE_H,1, true);
@@ -192,15 +192,11 @@ void obtainAngle( double startAngle){
     // obtain the angle and print
    
     aux.rawAngle = (buffer[0]<<8) | buffer[1];   // example, higbye = 00000000|00001111, le plicamos <<8  resulta -> 00001111|00000000
-    // finalmente : 00000111100000000 or 0000000011111111 =  00001111|11111111 
-    correctedAngle = (double)aux.rawAngle * 0.087890625;
-   
+    // finalmente : 00000111100000000 or 0000000011111111 =  00001111|11111111
 
-    // CORRECTED ANGLE  
-    correctedAngle = correctedAngle - startAngle;
-    if(correctedAngle<0){ 
-        correctedAngle = correctedAngle + 360;
-    }  
+    correctedAngle = (double)aux.rawAngle * 0.087890625;
+
+    //printf("CorrectedAngle: %f \n" , correctedAngle);
     // quadrant for turns 
     /*
     //quadrants
@@ -208,24 +204,44 @@ void obtainAngle( double startAngle){
     ---|---
     3  |  2
     */
-   
-    // define the quadrant
-    aux.quadrantNumber = (int) (correctedAngle/90) + 1;
+    if(!start){
 
-    // verify for count the turn and not have false counts
-    if(aux.quadrantNumber ==2 || aux.quadrantNumber ==3){
-         flagHelp++;
-    }
+            // CORRECTED ANGLE  
+        correctedAngle = correctedAngle - startAngle;
+        if(correctedAngle<0){ 
+            correctedAngle = correctedAngle + 360;
+        }  
+        // define the quadrant
+        aux.quadrantNumber = (int) (correctedAngle/90) + 1;
+        //printf("Quadrante:  %d  \n", aux.quadrantNumber);
 
-    // count the turn
-    if(aux.quadrantNumber != previousQuadrantNumber){
-        if ((aux.quadrantNumber == 1 && previousQuadrantNumber == 4 && flagHelp) ||
-            (aux.quadrantNumber == 4 && previousQuadrantNumber == 1 && flagHelp)) {
-            numberTurns++;
+        // verify for count the turn and not have false counts
+        
+
+        // count the turn
+        if(aux.quadrantNumber != previousQuadrantNumber){
+
+            if(aux.quadrantNumber ==2 && previousQuadrantNumber == 1){
+             flagHelp++;
+            }
+
+            if(aux.quadrantNumber ==3 || previousQuadrantNumber == 2){
+             flagHelp++;
+            }
+
+            if(flagHelp==2){
+                if ((aux.quadrantNumber == 1 && previousQuadrantNumber == 4  ) ||
+                (aux.quadrantNumber == 4 && previousQuadrantNumber == 1  )) {
+
+                    numberTurns++;
+                }
+            }
+            
+
+            previousQuadrantNumber = aux.quadrantNumber;
         }
-
-        previousQuadrantNumber = aux.quadrantNumber;
     }
+    
 }
 
 void switchI2c(uint sda_enable, uint scl_enable, uint sda_disable , uint scl_disable){
@@ -238,25 +254,28 @@ void switchI2c(uint sda_enable, uint scl_enable, uint sda_disable , uint scl_dis
 }
 
 //calculates the control of each wheel, and save their values on the structure
-void calcularControlPID(){
+void calcularControlPID(int i){
     double error = 0; 
     // for all motors
-    for(int i=0 ; i<4 ; i++){
-        error =  speedData[i] - desiredSpeed[i]; 
-        pidIntegral[i] = pidIntegral[i] + constansI[i]*error;
-        pid[i] = (constansP[i]*error) + pidIntegral[i] +  constansD[i]*((error-(pidPreviousError[i]))*TOTAL_TIME);
-        pidPreviousError[i] = error;
+    // for(int i=0 ; i<4 ; i++){
+        
+    error =  speedData[i] - desiredSpeed[i]; 
+    // printf("Speed: %f, %d\n", speedData[i], i);
+    pidIntegral[i] = (pidIntegral[i] + constansI[i]*error)/TOTAL_TIME;
+    pid[i] = (constansP[i]*error) + pidIntegral[i] +  constansD[i]*((error-(pidPreviousError[i]))*TOTAL_TIME);
+    pidPreviousError[i] = error;
 
-        // if for contro max speed angular in each wheel
-        if(pid[i] > MAX_ANGULAR_SPEED ){
-            pid[i] = MAX_ANGULAR_SPEED;
-        }else if (pid[i]< -MAX_ANGULAR_SPEED)
-        {
-            pid[i]  = -MAX_ANGULAR_SPEED;
-        }
-        // divided by 4 taking into account the max speed -> only use the 25% of PID calculated
-        pid[i] = (pid[i]/4); // considerando que la velocidad deseada es maximo 400 rad/s y lo mapeamos entre 0 y 100
+    // if for contro max speed angular in each wheel
+    if(pid[i] > 30){
+        pid[i] = 30;
+    }else if (pid[i]< -30)
+    {
+        pid[i]  = -30;
     }
+    
+    // divided by 4 taking into account the max speed -> only use the 25% of PID calculated
+    pid[i] = (pid[i]/4); // considerando que la velocidad deseada es maximo 400 rad/s y lo mapeamos entre 0 y 100
+    // }
     
 }
 

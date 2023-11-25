@@ -6,21 +6,21 @@
 #define PI 3.141592
 // Constantes para control P, PI o PID
 //RUEDA 1
-#define KP_0 0.045
-#define KI_0 0.0003
-#define KD_0 0.002
+#define KP_0 0.04
+#define KI_0 0.02
+#define KD_0 0.02
 //RUEDA 2
-#define KP_1 0.045  
-#define KI_1 0.0003
-#define KD_1 0.002
+#define KP_1 0.04
+#define KI_1 0.02
+#define KD_1 0.02
 //RUEDA 3
-#define KP_2 0.05
-#define KI_2 0.0003
-#define KD_2 0.002
+#define KP_2 0.045
+#define KI_2 0.02
+#define KD_2 0.02
 // RUEDA 4
-#define KP_3 0.05
-#define KI_3 0.0003
-#define KD_3 0.002
+#define KP_3 0.045
+#define KI_3 0.02
+#define KD_3 0.02
 // defines 3 vectors that contain all constants of pid for each wheel
 typedef double ConstantsP[4];
 typedef double ConstantsI[4];
@@ -55,6 +55,7 @@ extern ConstantsD constansD;
 #define ENCODER_I2C_SCL_PIN_3 19  // PIN 25 RUEDA 4 I2C1
 
 
+
 // Constantes de dirección del esclavo en el encoder y registros para leer o escribir
 #define ENCODER_ADDR 0X36        // Direcciones de esclavo I2C
 #define ENCODER_STATUS 0x0B      // Dirección para leer el estado del campo magnético
@@ -67,11 +68,11 @@ extern const uint8_t RAWANGLE_L;
 
 // Límites del PID, velocidad angular máxima y algunos parámetros
 #define MAX_ANGULAR_SPEED 200
-#define TOTAL_TIME 20 // Para el PID 1/T  donde T es el tiempo total entre errores calculados-> T = TIME_WINDOW_US*4
+#define TOTAL_TIME 25 // Para el PID 1/T  donde T es el tiempo total entre errores calculados-> T = TIME_WINDOW_US*4
 // Conversión de grados a radianes y ventana de tiempo para calcular la velocidad angular
-#define SAMPLING_TIME 625 // Time in microseconds to sample encoder angle
-#define TIME_WINDOW_US 12500  // Time window in microseconds for calculating the angular velocity of a single encoder
-#define INV_TIME_WINDOW_S 80  // [s^-1] Inverso de TIME_WINDOW_US, convertido a segundos y calculado como 1 / TIME_WINDOW_US
+#define SAMPLING_TIME 1000 // Time in microseconds to sample encoder angle
+#define TIME_WINDOW_US 6250//12500  // Time window in microseconds for calculating the angular velocity of a single encoder
+#define INV_TIME_WINDOW_S 160  // [s^-1] Inverso de TIME_WINDOW_US, convertido a segundos y calculado como 1 / TIME_WINDOW_US
 #define TO_RAD(angle, turns) (((turns * 2.0) + (angle / 180.0)) * 3.141592) // convert degrees to radians
 
 // for calculate angle
@@ -117,8 +118,8 @@ extern PIDErrorData pidPreviousError;
 void initI2C();
 void checkMagnetPresent();
 void switchI2c(uint sda_enable, uint scl_enable, uint sda_disable , uint scl_disable);
-void obtainAngle(double startAngle);
-void calcularControlPID();
+void obtainAngle(double startAngle, bool start);
+void calcularControlPID(int i);
 
 
 

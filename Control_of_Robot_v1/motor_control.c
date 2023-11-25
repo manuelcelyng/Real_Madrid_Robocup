@@ -58,6 +58,7 @@ void moverMotor(char* move, int value1, int value2){
 }
 
 void setDutyxPID(int one_D, int two_D, int three_D, int four_D){
+    
     pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, one_D); // RUEDA 1
     pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, two_D); // RUEDA 2
     pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, three_D); // RUEDA 3 
@@ -84,22 +85,46 @@ void initMotorControl(){
     
 }
 
-void adjustPWM(){
+void adjustPWM(int i){
     
     // pid[0] -> RUEDA 1
     // pid[1] -> RUEDA 2
     // pid[2] -> RUEDA 3  
     // pid[3] -> RUEDA 4 
-    for(int i = 0 ; i<4; i++){
-        duty[i] =  duty[i] + (int)pid[i];
+    // for(int i = 0 ; i<4; i++){
+        duty[i] =  duty[i] + pid[i];
+
+    
+       
         if (duty[i] > MAX_DUTY)
         {
             duty[i] = MAX_DUTY;
-        }else if (duty[i]< MIN_DUTY)
+        }else if (duty[i]< 700)
         {
             duty[i] = MIN_DUTY;
-        }        
-    }
+        } 
+
+        // swicht  
+
+        switch (i)
+        {
+        case 0: 
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, (int)duty[0]); // RUEDA 1
+            break;
+        case 1: 
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, (int)duty[1]); // RUEDA 1
+            break;
+        case 2: 
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, (int)duty[2]); // RUEDA 1
+            break;
+        case 3: 
+            pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, (int)duty[3]); // RUEDA 1
+            break;
+        default:
+            break;
+        }
+       
+    // }
 
     /*DutyCycle duty_aux = {750,750,750,750};
     if (duty[0]> 750 || duty[0]<750)
@@ -118,7 +143,7 @@ void adjustPWM(){
     {
         duty_aux[3] = duty[3];
     }*/
-    setDutyxPID(duty[0], duty[1], duty[2], duty[3]);
-    //printf("%d,%d,%d,%d\n",duty[0], duty[1], duty[2], duty[3]);
+    setDutyxPID((int)duty[0], (int)duty[1], (int)duty[2], (int)duty[3]);
+    //printf("%d,%d,%d,%d\n",(int)duty[0],(int)duty[1], (int)duty[2], (int)duty[3]);
 
 }
