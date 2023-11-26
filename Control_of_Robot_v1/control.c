@@ -4,6 +4,8 @@
 
 bool run_command = false;
 int select_movement = 0; // 0 , no hace nada.
+int value1 = 0;
+int value2 = 0;
 
 void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
     float phi = q[2][0];
@@ -23,50 +25,45 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
     R[2][2] = 1;  
 
     // Calculate the elements of the rotation matrix A
-    float A[4][3];
-    A[0][0] = -0.7071067/r;
-    A[0][1] = 0.7071067/r;
-    A[0][2] = L/r;
-    A[1][0] = -0.7071067/r;
-    A[1][1] = -0.7071067/r;
-    A[1][2] = L/r;
-    A[2][0] = 0.7071067/r;
-    A[2][1] = -0.7071067/r;
-    A[2][2] = L/r;
-    A[3][0] = 0.7071067/r;
-    A[3][1] = 0.7071067/r;
-    A[3][2] = L/r;
-
     // float A[4][3];
-    // A[0][0] = -0.8660254/r;
-    // A[0][1] = 0.5/r;
+    // A[0][0] = -0.7071067/r;
+    // A[0][1] = 0.7071067/r;
     // A[0][2] = L/r;
-    // A[1][0] = 0.8660254/r;
-    // A[1][1] = 0.5/r;
+    // A[1][0] = -0.7071067/r;
+    // A[1][1] = -0.7071067/r;
     // A[1][2] = L/r;
     // A[2][0] = 0.7071067/r;
     // A[2][1] = -0.7071067/r;
     // A[2][2] = L/r;
-    // A[3][0] = -0.7071067/r;
-    // A[3][1] = -0.7071067/r;
+    // A[3][0] = 0.7071067/r;
+    // A[3][1] = 0.7071067/r;
     // A[3][2] = L/r;
+
+    float A[4][3];
+    A[0][0] = -0.8660254/r;
+    A[0][1] = 0.5/r;
+    A[0][2] = L/r;
+    A[1][0] = 0.8660254/r;
+    A[1][1] = 0.5/r;
+    A[1][2] = L/r;
+    A[2][0] = 0.7071067/r;
+    A[2][1] = -0.7071067/r;
+    A[2][2] = L/r;
+    A[3][0] = -0.7071067/r;
+    A[3][1] = -0.7071067/r;
+    A[3][2] = L/r;
 
     dteta[0][0] = A[0][0]*U[0][0] + A[0][1]*U[1][0] + A[0][2]*U[2][0];
     dteta[1][0] = A[1][0]*U[0][0] + A[1][1]*U[1][0] + A[1][2]*U[2][0];
     dteta[2][0] = A[2][0]*U[0][0] + A[2][1]*U[1][0] + A[2][2]*U[2][0];
     dteta[3][0] = A[3][0]*U[0][0] + A[3][1]*U[1][0] + A[3][2]*U[2][0];
 
-    dteta[0][0] *= 5;
-    dteta[1][0] *= 5;
-    dteta[2][0] *= 5;
-    dteta[3][0] *= 5;
-
     // Limitar dteta al rango de -400 a 400
     for (int i = 0; i < 4; i++) {
-        if (dteta[i][0] > 200.0) {
-            dteta[i][0] = 200.0;
-        } else if (dteta[i][0] < -200.0) {
-            dteta[i][0] = -200.0;
+        if (dteta[i][0] > 150.0) {
+            dteta[i][0] = 150.0;
+        } else if (dteta[i][0] < -150.0) {
+            dteta[i][0] = -150.0;
         }
     }
 
@@ -153,21 +150,24 @@ void control(float e[3][1], float ek[3][1], float ek2[3][1], float q[3][1], floa
 
 
 // Funcion que llama el bluetooth
-void ejecutarMovimiento(char* move, int value1, int value2){
+void ejecutarMovimiento(char* move, int value_1, int value_2){
     // strcmp(move, "T")        // Si se quiere comparar una cadena más larga en el if que no sea de un solo caracter
     // Movimiento GIRO, utilizar value1, es el valor del ÁNGULO
     if(move[0] == 'T') {
         // Giro sobre su propio eje un ángulo determinado ( Parámetros : ángulo)
-        printf("GIRO %d\n", value1);
+        value1 = value_1;
+        printf("GIRO %d\n", value_1);
         select_movement = 1;
         run_command =  true;
     }
 
-    // Movimiento DESPLAZAMIENTO, utilizar value1, es el valor de la DISTANCIA
+    // Movimiento DESPLAZAMIENTO, utilizar value1, es el valor de la ángulo
     if(move[0] == 'D') {
         // Desplazamiento en linea recta para diferentes direcciones con relación al frente del robot y durante una distancia determinada ( Parámetros: ángulo y distancia.)
-        printf("DESPLAZAMIENTO %d\n", value1);
-         select_movement = 2;
+        printf("DESPLAZAMIENTO %d\n", value_1);
+        value1 = value_1;
+        value2 = value_2;  
+        select_movement = 2;
         run_command =  true;
     }
 
@@ -175,7 +175,7 @@ void ejecutarMovimiento(char* move, int value1, int value2){
     if(move[0] == 'C') {
 
         //  Desplazamiento circular con un radio determinado ( parámetros :  radio ,  ángulo)
-        printf("DESPLAZAMIENTO CIRCULAR %d, %d\n", value1, value2);
+        printf("DESPLAZAMIENTO CIRCULAR %d, %d\n", value_1, value_2);
         select_movement = 3;
         run_command =  true;
     }

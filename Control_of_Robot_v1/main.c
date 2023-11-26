@@ -85,6 +85,7 @@ int main(){
     float T = 30;
     float b = 2 * 3.141592653589793 / T;
     float ek[3][1] = {{0}, {0}, {0}};
+    float ek2[3][1] = {{0}, {0}, {0}};
     float U[3][1] = {{0}, {0}, {0}};
     float uk[3][1] = {{0}, {0}, {0}};
     float e[3][1] = {{0}, {0}, {0}};
@@ -96,6 +97,11 @@ int main(){
     int32_t dt;
     long double ang_z_prev = 0;
     long double ang_z = 0;
+    // Calculate qd
+    float qd[3][1];
+    qd[0][0] = 0;//q[0][0];//-4*sinf(b * t_i)*sinf(b * t_i);
+    qd[1][0] = 0;//q[1][0]+0.03 ;//2*sinf(b * t_i);
+    qd[2][0] = 0;
 
     // DEFINE THE REPEATING TIMER FOR IMU
     struct repeating_timer timer;
@@ -126,16 +132,21 @@ int main(){
 
                 float t_i = (time_us_64()-offset_time)*1e-6;
 
-                // Calculate qd
-                float qd[3][1];
-                qd[0][0] = 0;//q[0][0];//-4*sinf(b * t_i)*sinf(b * t_i);
-                qd[1][0] = 0;//q[1][0]+0.03 ;//2*sinf(b * t_i);
-                qd[2][0] = 3.141592/2;
+                if(select_movement == 1){
+                    
+                    qd[2][0] += TO_RAD(value1,0);
+                    select_movement = 0;
+                }else if(select_movement == 2){
+                    qd[0][0] += value2*cosf(value1);
+                    qd[1][0] += value2*sinf(value1);
+                    select_movement = 0;
+                }
 
                 // Update ek
                 for (int j = 0; j < 3; j++) {
+                    ek2[j][0] = ek[j][0];
                     ek[j][0] = e[j][0];
-                } // for
+                }
 
                 // ang_Z es la variable que calcula la IMU  TOMA MUTEX
                 //printf("ang: %f\n", ang_z);
@@ -146,6 +157,8 @@ int main(){
                 for (int j = 0; j < 3; j++) {
                     e[j][0] = qd[j][0] - q[j][0];
                 } // for
+
+                
 
                 // CAMBIAMOS LAS CONSTANTES DEL PID
                 for(int i = 0 ; i<4 ; i++){
@@ -164,7 +177,7 @@ int main(){
                 uk[0][0] = U[0][0];
                 uk[1][0] = U[1][0];
                 uk[2][0] = U[2][0];
-                control(e, ek, q, uk, U);
+                control(e, ek, ek2, q, uk, U);
 
                 // Call the planta function to calculate dq and dteta
                 float dq[3][1];
@@ -179,16 +192,29 @@ int main(){
                 
                 mutex_enter_blocking(&my_mutex);
                 desiredSpeed[0] = dteta[0][0];  // RUEDA 1
-                desiredSpeed[1] = dteta[3][0];  // RUEDA 2
+                desiredSpeed[1] = dteta[1][0];  // RUEDA 2
                 desiredSpeed[2] = dteta[2][0];  // RUEDA 3
-                desiredSpeed[3] = dteta[1][0];  // RUEDA 4
+                desiredSpeed[3] = dteta[3][0];  // RUEDA 4
                 mutex_exit(&my_mutex);
 
+                if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.08726 && e[2][0] < 0.08726){
+                    run_command = false;
+                    run_control_wheels = false;
+                    printf("cumple condicion \n");
+                    mutex_enter_blocking(&my_mutex);
+                    desiredSpeed[0] = 0;  // RUEDA 1
+                    desiredSpeed[1] = 0;  // RUEDA 2
+                    desiredSpeed[2] = 0;  // RUEDA 3
+                    desiredSpeed[3] = 0;  // RUEDA 4
+                    mutex_exit(&my_mutex);
+                    break;
+                }
 
-        
             } // while
         } // if
         else{
+            irq_set_enabled(UART1_IRQ, true);
+            //printf("Habilita interrupcion \n");
             __wfi();
             if(run_command){
                 run_control_wheels = true;
@@ -314,6 +340,9 @@ void main2() {
                 
                 }// end For de 0 a 3, para calcular la velocidad de cada una de las ruedas
         
+                if(speedData[0]== 0 && speedData[1]== 0 && speedData[2]== 0  && speedData[3]== 0 ){
+                    break;
+                }
                 sleep_ms(5); // sleep antes de suiche, mejora el funcionamiento.
 
             }// end while_control_wheel
