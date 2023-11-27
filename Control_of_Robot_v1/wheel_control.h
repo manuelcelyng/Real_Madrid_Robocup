@@ -70,7 +70,7 @@ extern const uint8_t RAWANGLE_L;
 #define MAX_ANGULAR_SPEED 200
 #define TOTAL_TIME 25 // Para el PID 1/T  donde T es el tiempo total entre errores calculados-> T = TIME_WINDOW_US*4
 // Conversión de grados a radianes y ventana de tiempo para calcular la velocidad angular
-#define SAMPLING_TIME 1000 // Time in microseconds to sample encoder angle
+#define SAMPLING_TIME 1500 // Time in microseconds to sample encoder angle
 #define TIME_WINDOW_US 6250//12500  // Time window in microseconds for calculating the angular velocity of a single encoder
 #define INV_TIME_WINDOW_S 160  // [s^-1] Inverso de TIME_WINDOW_US, convertido a segundos y calculado como 1 / TIME_WINDOW_US
 #define TO_RAD(angle, turns) (((turns * 2.0) + (angle / 180.0)) * 3.141592) // convert degrees to radians

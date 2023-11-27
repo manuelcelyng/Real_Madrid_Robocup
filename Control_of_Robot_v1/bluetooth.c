@@ -39,7 +39,6 @@ void uart_rx_handler() {
         
         ejecutarMovimiento(move, value1, value2);
         buffer_index = 0;
-        irq_set_enabled(UART1_IRQ, false);
     }
 }
 

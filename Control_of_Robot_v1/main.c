@@ -191,24 +191,26 @@ int main(){
 
                 
                 mutex_enter_blocking(&my_mutex);
+                if(!run_command){
+                    mutex_exit(&my_mutex);
+                    cancel_repeating_timer(&timer);
+                    break;
+                }
                 desiredSpeed[0] = dteta[0][0];  // RUEDA 1
                 desiredSpeed[1] = dteta[1][0];  // RUEDA 2
                 desiredSpeed[2] = dteta[2][0];  // RUEDA 3
                 desiredSpeed[3] = dteta[3][0];  // RUEDA 4
+
+                // printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
+                if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.08726 && e[2][0] < 0.08726){
+                    run_control_wheels = false;
+                }
+                
                 mutex_exit(&my_mutex);
 
-                if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.08726 && e[2][0] < 0.08726){
-                    run_command = false;
-                    run_control_wheels = false;
-                    printf("cumple condicion \n");
-                    mutex_enter_blocking(&my_mutex);
-                    desiredSpeed[0] = 0;  // RUEDA 1
-                    desiredSpeed[1] = 0;  // RUEDA 2
-                    desiredSpeed[2] = 0;  // RUEDA 3
-                    desiredSpeed[3] = 0;  // RUEDA 4
-                    mutex_exit(&my_mutex);
-                    break;
-                }
+               
+
+
 
             } // while
         } // if
@@ -217,6 +219,7 @@ int main(){
             //printf("Habilita interrupcion \n");
             __wfi();
             if(run_command){
+                irq_set_enabled(UART1_IRQ, false);
                 run_control_wheels = true;
                 add_repeating_timer_ms(IMU_INTERVAL_TIMER_MS, repeating_timer_callback, NULL, &timer);
                 __sev(); // Lanza el evento
@@ -244,6 +247,10 @@ void main2() {
     AngleData startAngle; // struct with all start angles
     // to control when the wheel is stopped
     double previousAngle = 0;
+    double previosAngle_direction = 0;
+    int valid_quadrant = 0;
+    int corrected_encoder_error = 0;
+    bool flag_sample = false;
     // for calculate start angle offset in the first sample
     bool startAngle_bool =  false;
 
@@ -252,6 +259,10 @@ void main2() {
     struct repeating_timer timer2;
     //add_repeating_timer_us(SAMPLING_TIME, repeating_timer_callback2, NULL, &timer);
     //add_repeating_timer_us(ENCODER_TIMER_TOTAL_VALUE_US, repeating_timer_callback21, NULL, &timer2);
+
+    // for(int f= 0 ; f<4 ; f++){
+    //     duty[f] = 740;
+    // }
 
     while(true){
         
@@ -277,17 +288,21 @@ void main2() {
                         break;
                     }  
 
-                    // Reinicio variables globales necesarias
-                    numberTurns = 0;
-                    flagHelp  = 0;
-                    previousQuadrantNumber = 0;
-                    correctedAngle = 0;
-                    startAngle_bool =  true;
+                    // Reinicio variables 
+                    numberTurns = 0; // cvaptura el numero de vueltas de la llanta
+                    flagHelp  = 0; // ayuda para el correcto calculo de las vueltas
+                    previousQuadrantNumber = 0; //  ayuda para el correcto calculo de las vueltas
+                    correctedAngle = 0; // es donde se guarda el angulo en cada muestreo
+                    startAngle_bool =  true; // para indicar que la primera muestra es un offset
+                    corrected_encoder_error = 0; // para validar que las muestras sean coherentes con el giro de la rueda
+                    flag_sample = false; // para definir que despues del offset se inicia con el calculo del corrected_encoder_error
+
+                    //Inicializo el timer de muestreo 
                     add_repeating_timer_us(SAMPLING_TIME, repeating_timer_callback2, NULL, &timer);
-                    // printf("RUEDA :%d \n", i+1);
+                
                     while (true)
                     {
-                        
+                        // if el cual toma las muestras y otros calculos que validan la dirección de la rueda
                         if(timer_fired2){
                             previousAngle = correctedAngle;
                             // MUTEX FOR I2C
@@ -298,33 +313,53 @@ void main2() {
                                 startAngle[i] = correctedAngle;
                                 add_repeating_timer_us(TIME_WINDOW_US, repeating_timer_callback21, NULL, &timer2);
                                 startAngle_bool = false;
+                            }else{
+                                if(!flag_sample){
+                                    flag_sample = true;
+                                }else{
+                                    if((correctedAngle - previousAngle)<0){
+                                        corrected_encoder_error-=1;  // disminuye el angulo - pwm >750 , antihorario
+                                    }else{ 
+                                        corrected_encoder_error+=1; //  aumenta el angulo - pwm <750 , horario
+                                    }
+                                }
                             }
                             timer_fired2 = false;
+                            
+                            // printf(" R %d: %f \n",i+1, correctedAngle);
+                            
                         }
                         
+                        // if de la ventana de tiempo durante la cual se tomarán muestras.
                         if(timer_fired21){
                             cancel_repeating_timer(&timer);
-                            // Garantizar que cuando no se está moviendo el robot, el angulo calculado sea exactamente 0
+                            cancel_repeating_timer(&timer2);
+                            
+                            valid_quadrant = ((int)(correctedAngle/90) + 1) -  ((int)(previousAngle/90) + 1);
                             previousAngle =  correctedAngle-previousAngle;
+                            //previosAngle_direction = previousAngle;
+
+                            // Garantizar que cuando no se está moviendo el robot, el angulo calculado sea exactamente 0
                             if(previousAngle<0){
                                 previousAngle= -1*previousAngle;
                             }
-                            if( previousAngle<=0.1   ||  (previousAngle)>359.9 ){
+                            if( previousAngle<=0.2   ||  (previousAngle)>359.8 ){
                                 speedData[i] = 0;
                             
                             }else{
-                                
-                                if(duty[i]>750){
+                                // ELIGE DEPENDIENDO LA DIRECCION DE LA VELOCIDAD
+                                if( valid_quadrant==3 || corrected_encoder_error<0){
                                     correctedAngle =  360-correctedAngle;
                                     speedData[i] = -1*((double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S));
                                 }else{
                                     speedData[i] = (double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S);
                                 }
                             }
+                        
+                            // printf("angulo R %d: %f \n",i+1, correctedAngle);
+                            // printf("speedData RUEDA %d : %f \n", i+1 ,  speedData[i] );
 
-                            //printf("speedData RUEDA %d : %f \n", i+1 ,  speedData[i] );
-
-                            cancel_repeating_timer(&timer2);
+                            
                             timer_fired21 =  false;
 
                             // Ajusto la velocidad de una vez;
@@ -340,10 +375,36 @@ void main2() {
                 
                 }// end For de 0 a 3, para calcular la velocidad de cada una de las ruedas
         
-                if(speedData[0]== 0 && speedData[1]== 0 && speedData[2]== 0  && speedData[3]== 0 ){
-                    break;
-                }
-                sleep_ms(5); // sleep antes de suiche, mejora el funcionamiento.
+                mutex_enter_blocking(&my_mutex);
+                if(!run_control_wheels){
+                    for(int i = 0 ; i<4; i++){
+                        // printf("error_previo R %d : %f\n",i+1,pidPreviousError[i]);
+                        if(pidPreviousError[i]==0.0){
+                            if(i==3){
+                                run_control_wheels = false;
+                                run_command =  false;
+                            }
+                        }
+                        else{
+                            run_control_wheels = true;
+                            break;
+                        }
+                    }
+                    if(!run_control_wheels){
+                        for(int i = 0; i<4 ; i++){
+                            pid[i] = 0;
+                            duty[i] = 750;
+                            adjustPWM(i);
+                        }
+                        mutex_exit(&my_mutex);
+                        break;
+                    }
+                }  
+                mutex_exit(&my_mutex);
+
+               
+
+             
 
             }// end while_control_wheel
             

@@ -79,6 +79,7 @@ void adjustPWM(int i){
         {
             duty[i] = MIN_DUTY;
         } 
+       
 
         // swicht  
 

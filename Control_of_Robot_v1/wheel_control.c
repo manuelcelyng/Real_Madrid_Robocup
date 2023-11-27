@@ -225,7 +225,7 @@ void obtainAngle( double startAngle, bool start){
              flagHelp++;
             }
 
-            if(aux.quadrantNumber ==3 || previousQuadrantNumber == 2){
+            if(aux.quadrantNumber ==3 && previousQuadrantNumber == 2){
              flagHelp++;
             }
 

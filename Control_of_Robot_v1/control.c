@@ -58,12 +58,17 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
     dteta[2][0] = A[2][0]*U[0][0] + A[2][1]*U[1][0] + A[2][2]*U[2][0];
     dteta[3][0] = A[3][0]*U[0][0] + A[3][1]*U[1][0] + A[3][2]*U[2][0];
 
+    // dteta[0][0] *= 3;
+    // dteta[1][0] *= 3;
+    // dteta[2][0] *= 3;
+    // dteta[3][0] *= 3;
+
     // Limitar dteta al rango de -400 a 400
     for (int i = 0; i < 4; i++) {
-        if (dteta[i][0] > 150.0) {
-            dteta[i][0] = 150.0;
-        } else if (dteta[i][0] < -150.0) {
-            dteta[i][0] = -150.0;
+        if (dteta[i][0] > 100.0) {
+            dteta[i][0] = 100.0;
+        } else if (dteta[i][0] < -100.0) {
+            dteta[i][0] = -100.0;
         }
     }
 
