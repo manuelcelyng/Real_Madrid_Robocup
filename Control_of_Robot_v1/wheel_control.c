@@ -266,11 +266,11 @@ void calcularControlPID(int i){
     pidPreviousError[i] = error;
 
     // if for contro max speed angular in each wheel
-    if(pid[i] > 50){
-        pid[i] = 50;
-    }else if (pid[i]< -50)
+    if(pid[i] > 20){
+        pid[i] = 20;
+    }else if (pid[i]< -20)
     {
-        pid[i]  = -50;
+        pid[i]  = -20;
     }
     
     // divided by 4 taking into account the max speed -> only use the 25% of PID calculated

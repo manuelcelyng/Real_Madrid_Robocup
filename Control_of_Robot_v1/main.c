@@ -133,7 +133,6 @@ int main(){
                 float t_i = (time_us_64()-offset_time)*1e-6;
 
                 if(select_movement == 1){
-                    
                     qd[2][0] += TO_RAD(value1,0);
                     select_movement = 0;
                 }else if(select_movement == 2){
@@ -158,20 +157,12 @@ int main(){
                     e[j][0] = qd[j][0] - q[j][0];
                 } // for
 
-                
-
                 // CAMBIAMOS LAS CONSTANTES DEL PID
                 // printf("%f \n" , q[2][0]);
                 for(int i = 0 ; i<4 ; i++){
-                    if(e[2][0]<0) {
-                        constansP[i] = ((2*PI + e[2][0])/(2*PI)) + constansP_C[i];
-                        //constansI[i] = ((2*PI + e[2][0])/15*PI) + constansI_C[i];
-                        constansD[i] = ((2*PI + e[2][0])/(5*PI)) + constansD_C[i];
-                    }else {
-                        constansP[i] = ((2*PI - e[2][0])/(2*PI)) + constansP_C[i];
-                        //constansI[i] = ((2*PI - e[2][0])/15*PI) + constansI_C[i];
-                        constansD[i] = ((2*PI - e[2][0])/(5*PI)) + constansD_C[i];
-                    }
+                    constansP[i] = 0.5*exp(-1*e[2][0]*e[2][0]) + constansP_C[i];
+                    //constansI[i] = 0.05*exp(-1*e[2][0]*e[2][0]) + constansI_C[i];
+                    //constansD[i] = 0.5*exp(-1*e[2][0]*e[2][0]) + constansD_C[i];
                 } // for
 
                 // Call the control function to update U
@@ -208,11 +199,6 @@ int main(){
                 }
                 
                 mutex_exit(&my_mutex);
-
-               
-
-
-
             } // while
         } // if
         else{
@@ -349,7 +335,8 @@ void main2() {
                             
                             }else{
                                 // ELIGE DEPENDIENDO LA DIRECCION DE LA VELOCIDAD
-                                if( valid_quadrant==3 || corrected_encoder_error<0){
+                                //if( valid_quadrant==3 || corrected_encoder_error<0)
+                                if( duty[i]>750){
                                     correctedAngle =  360-correctedAngle;
                                     speedData[i] = -1*((double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S));
                                 }else{

@@ -65,10 +65,10 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
 
     // Limitar dteta al rango de -400 a 400
     for (int i = 0; i < 4; i++) {
-        if (dteta[i][0] > 100.0) {
-            dteta[i][0] = 100.0;
-        } else if (dteta[i][0] < -100.0) {
-            dteta[i][0] = -100.0;
+        if (dteta[i][0] > 150.0) {
+            dteta[i][0] = 150.0;
+        } else if (dteta[i][0] < -150.0) {
+            dteta[i][0] = -150.0;
         }
     }
 
