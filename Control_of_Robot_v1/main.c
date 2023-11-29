@@ -161,15 +161,16 @@ int main(){
                 
 
                 // CAMBIAMOS LAS CONSTANTES DEL PID
+                // printf("%f \n" , q[2][0]);
                 for(int i = 0 ; i<4 ; i++){
                     if(e[2][0]<0) {
-                        constansP[i] = ((2*PI + e[2][0])/5*PI) + constansP_C[i];
+                        constansP[i] = ((2*PI + e[2][0])/(2*PI)) + constansP_C[i];
                         //constansI[i] = ((2*PI + e[2][0])/15*PI) + constansI_C[i];
-                        //constansD[i] = ((2*PI + e[2][0])/15*PI) + constansD_C[i];
+                        constansD[i] = ((2*PI + e[2][0])/(5*PI)) + constansD_C[i];
                     }else {
-                        constansP[i] = ((2*PI - e[2][0])/5*PI) + constansP_C[i];
+                        constansP[i] = ((2*PI - e[2][0])/(2*PI)) + constansP_C[i];
                         //constansI[i] = ((2*PI - e[2][0])/15*PI) + constansI_C[i];
-                        //constansD[i] = ((2*PI - e[2][0])/15*PI) + constansD_C[i];
+                        constansD[i] = ((2*PI - e[2][0])/(5*PI)) + constansD_C[i];
                     }
                 } // for
 
