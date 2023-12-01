@@ -8,7 +8,8 @@ project(imu)
 pico_sdk_init()
 
 add_executable(myimu
-    myimu.c
+    calibration.c
+    imu.c
 )
 
 pico_enable_stdio_usb(myimu 1)

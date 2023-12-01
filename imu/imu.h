@@ -18,8 +18,8 @@ static int addr = 0x68;
 #define YOffsetGyro -45
 #define ZOffsetGyro 7
 #define GPIO_FUNC_I2C 3
-#define I2C_SDA_PIN 4
-#define I2C_SCL_PIN 5
+#define I2C_SDA_PIN 20
+#define I2C_SCL_PIN 21
 
 /* Example code to talk to a MPU6050 MEMS accelerometer and gyroscope
 
