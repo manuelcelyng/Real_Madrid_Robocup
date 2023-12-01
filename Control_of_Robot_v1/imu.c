@@ -55,7 +55,7 @@ int16_t getOffset(uint8_t dir){
     return valor;
 }
 
-void mpu6050_read_raw(int16_t *gyro) {
+void mpu6050_read_raw(int16_t *gyro, int16_t accel[3]) {
     // For this particular device, we send the device the register we want to read
     // first, then subsequently read from the device. The register is auto incrementing
     // so we don't need to keep sending the register we want, just the first.
@@ -63,17 +63,17 @@ void mpu6050_read_raw(int16_t *gyro) {
     uint8_t buffer[6];
 
     // Start reading acceleration registers from register 0x3B for 6 bytes
-    //uint8_t val = 0x3B;
-    // i2c_write_blocking(i2c_default, addr, &val, 1, true); // true to keep master control of bus
-    // i2c_read_blocking(i2c_default, addr, buffer, 6, false);
+    uint8_t val = 0x3B;
+    i2c_write_blocking(i2c_default, addr, &val, 1, true); // true to keep master control of bus
+    i2c_read_blocking(i2c_default, addr, buffer, 6, false);
 
-    // for (int i = 0; i < 3; i++) {
-    //     accel[i] = (buffer[i * 2] << 8 | buffer[(i * 2) + 1]);
-    // }
+    for (int i = 0; i < 3; i++) {
+        accel[i] = (buffer[i * 2] << 8 | buffer[(i * 2) + 1]);
+    }
 
     // Now gyro data from reg 0x43 for 6 bytes
     // The register is auto incrementing on each read
-    uint8_t val = 0x47;
+    val = 0x47;
     //i2c_write_timeout_us(i2c_default, addr, &val, 1, true, 10000);
     //i2c_read_timeout_us(i2c_default, addr, buffer, 2, false, 10000);
     i2c_write_blocking(i2c_default, addr, &val, 1, true);

@@ -49,5 +49,5 @@ void mpu6050_reset();
 void init_i2c_imu();
 void setOffset(int16_t valor, uint8_t dir);
 int16_t getOffset(uint8_t dir);
-void mpu6050_read_raw(int16_t *gyro);
+void mpu6050_read_raw(int16_t *gyro, int16_t accel[3]);
 #endif

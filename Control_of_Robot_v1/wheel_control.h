@@ -6,19 +6,19 @@
 #define PI 3.141592
 // Constantes para control P, PI o PID
 //RUEDA 1
-#define KP_0 0.6
+#define KP_0 0.8
 #define KI_0 0.02
 #define KD_0 0.02
 //RUEDA 2
-#define KP_1 0.6
+#define KP_1 0.8
 #define KI_1 0.02
 #define KD_1 0.02
 //RUEDA 3
-#define KP_2 0.6
+#define KP_2 0.8
 #define KI_2 0.02
 #define KD_2 0.02
 // RUEDA 4
-#define KP_3 0.6
+#define KP_3 0.8
 #define KI_3 0.02
 #define KD_3 0.02
 // defines 3 vectors that contain all constants of pid for each wheel

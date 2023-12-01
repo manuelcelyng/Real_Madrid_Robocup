@@ -75,7 +75,7 @@ void adjustPWM(int i){
         if (duty[i] > MAX_DUTY)
         {
             duty[i] = MAX_DUTY;
-        }else if (duty[i]< 700)
+        }else if (duty[i]<  MIN_DUTY)
         {
             duty[i] = MIN_DUTY;
         } 

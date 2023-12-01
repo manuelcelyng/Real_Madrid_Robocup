@@ -9,8 +9,8 @@ int value2 = 0;
 
 void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
     float phi = q[2][0];
-    float r = 0.1;
-    float L = 1;
+    float r = 0.0325;
+    float L = 0.09;
     
     // Calculate the elements of the rotation matrix R
     float R[3][3];
@@ -24,7 +24,7 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
     R[2][1] = 0;
     R[2][2] = 1;  
 
-    // Calculate the elements of the rotation matrix A
+    // Calculate the elements of the rotation matrix A r=3.25cm o 0.0325  y L=9cm o 0.09
     // float A[4][3];
     // A[0][0] = -0.7071067/r;
     // A[0][1] = 0.7071067/r;
@@ -58,10 +58,10 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
     dteta[2][0] = A[2][0]*U[0][0] + A[2][1]*U[1][0] + A[2][2]*U[2][0];
     dteta[3][0] = A[3][0]*U[0][0] + A[3][1]*U[1][0] + A[3][2]*U[2][0];
 
-    // dteta[0][0] *= 3;
-    // dteta[1][0] *= 3;
-    // dteta[2][0] *= 3;
-    // dteta[3][0] *= 3;
+     dteta[0][0] *= 3;
+     dteta[1][0] *= 3;
+     dteta[2][0] *= 3;
+     dteta[3][0] *= 3;
 
     // Limitar dteta al rango de -400 a 400
     for (int i = 0; i < 4; i++) {
@@ -107,11 +107,10 @@ void control(float e[3][1], float ek[3][1], float ek2[3][1], float q[3][1], floa
     float u[3][1];
     for (int i = 0; i < 3; i++) {
         u[i][0] = (q0 * e[i][0] + q1 * ek[i][0] + q2 * ek2[i][0])*k[i][0] + uk[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
-        if (i == 2 && e[i][0]<0.1745 && e[i][0]>-0.1745)
-        {
+        if (i == 2 && e[i][0]<0.1745 && e[i][0]>-0.1745){
             u[i][0] = 0;
         }else {
-            u[i][0] = kc* e[i][0]*k[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
+            u[i][0] = kc*(e[i][0])*k[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
         }
     }
     //

@@ -25,6 +25,7 @@ static mutex_t my_mutex2;
 
 // gyro de la IMU y bandera
 int16_t gyro = 0;
+int16_t acceleration[3] = {0,0,0};
 volatile bool timer_fired = false;
 volatile bool timer_fired2 = false;
 volatile bool timer_fired21 = false;
@@ -37,7 +38,7 @@ bool repeating_timer_callback21(struct repeating_timer *t);
 
 bool repeating_timer_callback(struct repeating_timer *t) {
     mutex_enter_blocking(&my_mutex2);
-    mpu6050_read_raw(&gyro);
+    mpu6050_read_raw(&gyro, acceleration);
     mutex_exit(&my_mutex2);
     timer_fired =  true;
 
@@ -71,7 +72,7 @@ int main(){
     // For necesario para las primeras lecturas erroneas de la IMU.
     for (size_t i = 0; i < 40; i++)
     {
-        mpu6050_read_raw(&gyro);
+        mpu6050_read_raw(&gyro, acceleration);
         sleep_ms(5);
     }
     // Inicializa el Bluetooth
@@ -126,7 +127,10 @@ int main(){
                     ang_z += ang_z_prev;
                     ang_z_prev=ang_z;
                 } // if
-            
+                float ax_m_s2 = acceleration[0];// * (9.81/16384.0);
+                float ay_m_s2 = acceleration[1];// * (9.81/16384.0);
+                printf("ax: %f\n", ax_m_s2);
+                printf("ay: %f\n", ay_m_s2);            
 
                 // CONTROL GENERAL DEL CARRO
 
@@ -160,7 +164,7 @@ int main(){
                 // CAMBIAMOS LAS CONSTANTES DEL PID
                 // printf("%f \n" , q[2][0]);
                 for(int i = 0 ; i<4 ; i++){
-                    constansP[i] = 0.5*exp(-1*e[2][0]*e[2][0]) + constansP_C[i];
+                    constansP[i] = 10*exp(-1*e[2][0]*e[2][0]) + constansP_C[i];
                     //constansI[i] = 0.05*exp(-1*e[2][0]*e[2][0]) + constansI_C[i];
                     //constansD[i] = 0.5*exp(-1*e[2][0]*e[2][0]) + constansD_C[i];
                 } // for
@@ -194,8 +198,12 @@ int main(){
                 desiredSpeed[3] = dteta[3][0];  // RUEDA 4
 
                 // printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
-                if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.08726 && e[2][0] < 0.08726){
+                if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
                     run_control_wheels = false;
+                    // desiredSpeed[0] = 0;
+                    // desiredSpeed[1] = 0;
+                    // desiredSpeed[2] = 0;
+                    // desiredSpeed[3] = 0;
                 }
                 
                 mutex_exit(&my_mutex);
@@ -336,11 +344,14 @@ void main2() {
                             }else{
                                 // ELIGE DEPENDIENDO LA DIRECCION DE LA VELOCIDAD
                                 //if( valid_quadrant==3 || corrected_encoder_error<0)
-                                if( duty[i]>750){
+                                if( valid_quadrant==3 || corrected_encoder_error<0){
                                     correctedAngle =  360-correctedAngle;
                                     speedData[i] = -1*((double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S));
-                                }else{
+                                }else if(correctedAngle<340){
                                     speedData[i] = (double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S);
+                                }else{
+                                    correctedAngle =  360-correctedAngle;
+                                    speedData[i] = -1*((double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S));
                                 }
                             }
                         
