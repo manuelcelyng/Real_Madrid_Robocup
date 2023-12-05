@@ -160,7 +160,7 @@ void ejecutarMovimiento(char* move, int value_1, int value_2){
     if(move[0] == 'T') {
         // Giro sobre su propio eje un ángulo determinado ( Parámetros : ángulo)
         value1 = value_1;
-        printf("GIRO %d\n", value_1);
+        //printf("GIRO %d\n", value_1);
         select_movement = 1;
         run_command =  true;
     }
@@ -168,7 +168,7 @@ void ejecutarMovimiento(char* move, int value_1, int value_2){
     // Movimiento DESPLAZAMIENTO, utilizar value1, es el valor de la ángulo
     if(move[0] == 'D') {
         // Desplazamiento en linea recta para diferentes direcciones con relación al frente del robot y durante una distancia determinada ( Parámetros: ángulo y distancia.)
-        printf("DESPLAZAMIENTO %d\n", value_1);
+        //printf("DESPLAZAMIENTO %d\n", value_1);
         value1 = value_1;
         value2 = value_2;  
         select_movement = 2;
@@ -179,7 +179,7 @@ void ejecutarMovimiento(char* move, int value_1, int value_2){
     if(move[0] == 'C') {
 
         //  Desplazamiento circular con un radio determinado ( parámetros :  radio ,  ángulo)
-        printf("DESPLAZAMIENTO CIRCULAR %d, %d\n", value_1, value_2);
+        //printf("DESPLAZAMIENTO CIRCULAR %d, %d\n", value_1, value_2);
         select_movement = 3;
         run_command =  true;
     }

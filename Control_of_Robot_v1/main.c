@@ -9,7 +9,6 @@
 // .h propios.
 #include "motor_control.h"
 #include "control.h"
-#include "sharedfunctions.h"
 #include "wheel_control.h"
 #include "bluetooth.h" // .h definicion de todo lo relacionado a la comunicación bluetooth
 #include "imu.h"
@@ -98,6 +97,8 @@ int main(){
     int32_t dt;
     long double ang_z_prev = 0;
     long double ang_z = 0;
+    long double vel = 0;
+    long double dist = 0;
     // Calculate qd
     float qd[3][1];
     qd[0][0] = 0;//q[0][0];//-4*sinf(b * t_i)*sinf(b * t_i);
@@ -127,10 +128,18 @@ int main(){
                     ang_z += ang_z_prev;
                     ang_z_prev=ang_z;
                 } // if
-                float ax_m_s2 = acceleration[0];// * (9.81/16384.0);
-                float ay_m_s2 = acceleration[1];// * (9.81/16384.0);
-                printf("ax: %f\n", ax_m_s2);
-                printf("ay: %f\n", ay_m_s2);            
+                // if (acceleration[0] > 60 || acceleration[0] < -60)                {
+                //     vel += acceleration[0] * (9.81/4096.0)*0.005;
+                //     dist += vel*0.005;
+                //     printf("acce: %d\n", acceleration[0]);
+                //     printf("vel: %f\n", vel);
+                //     printf("dist: %f\n", dist);
+                // }
+                
+                
+                //float ay_m_s2 = acceleration[1];// * (9.81/16384.0);
+                
+                //printf("ay: %f\n", ay_m_s2);            
 
                 // CONTROL GENERAL DEL CARRO
 
@@ -140,8 +149,8 @@ int main(){
                     qd[2][0] += TO_RAD(value1,0);
                     select_movement = 0;
                 }else if(select_movement == 2){
-                    qd[0][0] += value2*cosf(value1);
-                    qd[1][0] += value2*sinf(value1);
+                    qd[0][0] += value2*cosf(TO_RAD(value1,0));
+                    qd[1][0] += value2*sinf(TO_RAD(value1,0));
                     select_movement = 0;
                 }
 
@@ -188,8 +197,9 @@ int main(){
                 
                 mutex_enter_blocking(&my_mutex);
                 if(!run_command){
-                    mutex_exit(&my_mutex);
                     cancel_repeating_timer(&timer);
+                    mutex_exit(&my_mutex);
+                    
                     break;
                 }
                 desiredSpeed[0] = dteta[0][0];  // RUEDA 1
@@ -197,14 +207,18 @@ int main(){
                 desiredSpeed[2] = dteta[2][0];  // RUEDA 3
                 desiredSpeed[3] = dteta[3][0];  // RUEDA 4
 
-                // printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
+                //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
                 if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
                     run_control_wheels = false;
-                    // desiredSpeed[0] = 0;
-                    // desiredSpeed[1] = 0;
-                    // desiredSpeed[2] = 0;
-                    // desiredSpeed[3] = 0;
+                    desiredSpeed[0] = 0;  // RUEDA 1
+                    desiredSpeed[1] = 0;  // RUEDA 2
+                    desiredSpeed[2] = 0;  // RUEDA 3
+                    desiredSpeed[3] = 0;  // RUEDA 4
+                    
+                    // printf("%f, %f, %f \n", e[0][0], e[1][0], e[2][0]);
                 }
+                // printf("q0 : %f  - q1: %f \n", q[0][0], q[1][0]);
+               
                 
                 mutex_exit(&my_mutex);
             } // while
@@ -214,6 +228,13 @@ int main(){
             //printf("Habilita interrupcion \n");
             __wfi();
             if(run_command){
+                // qd[0][0] = 0;
+                // qd[1][0] = 0;
+                // qd[2][0] = 0;
+                // q[0][0] = 0;
+                // q[1][0] = 0;
+                // q[2][0] = 0;
+                // ang_z = 0;
                 irq_set_enabled(UART1_IRQ, false);
                 run_control_wheels = true;
                 add_repeating_timer_ms(IMU_INTERVAL_TIMER_MS, repeating_timer_callback, NULL, &timer);
@@ -241,17 +262,17 @@ void main2() {
 
     AngleData startAngle; // struct with all start angles
     // to control when the wheel is stopped
-    double previousAngle = 0;
-    double previosAngle_direction = 0;
+    double previousAngle = 0; // task sample
     int valid_quadrant = 0;
-    int corrected_encoder_error = 0;
-    bool flag_sample = false;
+    int corrected_encoder_error = 0; // task sample
+    bool flag_sample = false; // task sample
     // for calculate start angle offset in the first sample
-    bool startAngle_bool =  false;
+    bool startAngle_bool =  false; // task sample
 
     // DEFINE THE REPEATING TIMER FOR CALCULATE THE SPEED ANGULAR
     struct repeating_timer timer;
     struct repeating_timer timer2;
+    alarm_pool_t *pool11=  alarm_pool_create(1,2);
     //add_repeating_timer_us(SAMPLING_TIME, repeating_timer_callback2, NULL, &timer);
     //add_repeating_timer_us(ENCODER_TIMER_TOTAL_VALUE_US, repeating_timer_callback21, NULL, &timer2);
 
@@ -293,7 +314,8 @@ void main2() {
                     flag_sample = false; // para definir que despues del offset se inicia con el calculo del corrected_encoder_error
 
                     //Inicializo el timer de muestreo 
-                    add_repeating_timer_us(SAMPLING_TIME, repeating_timer_callback2, NULL, &timer);
+                    //add_repeating_timer_us(SAMPLING_TIME, repeating_timer_callback2, NULL, &timer);
+                    alarm_pool_add_repeating_timer_us(pool11,SAMPLING_TIME, repeating_timer_callback2, NULL, &timer);
                 
                     while (true)
                     {
@@ -306,7 +328,7 @@ void main2() {
                             mutex_exit(&my_mutex2);  
                             if(startAngle_bool){
                                 startAngle[i] = correctedAngle;
-                                add_repeating_timer_us(TIME_WINDOW_US, repeating_timer_callback21, NULL, &timer2);
+                                alarm_pool_add_repeating_timer_us(pool11,TIME_WINDOW_US, repeating_timer_callback21, NULL, &timer2);
                                 startAngle_bool = false;
                             }else{
                                 if(!flag_sample){
@@ -340,7 +362,6 @@ void main2() {
                             }
                             if( previousAngle<=0.2   ||  (previousAngle)>359.8 ){
                                 speedData[i] = 0;
-                            
                             }else{
                                 // ELIGE DEPENDIENDO LA DIRECCION DE LA VELOCIDAD
                                 //if( valid_quadrant==3 || corrected_encoder_error<0)
@@ -378,7 +399,7 @@ void main2() {
                 if(!run_control_wheels){
                     for(int i = 0 ; i<4; i++){
                         // printf("error_previo R %d : %f\n",i+1,pidPreviousError[i]);
-                        if(pidPreviousError[i]==0.0){
+                        if(desiredSpeed[i] < 1 && desiredSpeed[i] > -1){
                             if(i==3){
                                 run_control_wheels = false;
                                 run_command =  false;

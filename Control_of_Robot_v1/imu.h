@@ -13,9 +13,9 @@ static int addr = 0x68;
 #define XGyro 0x13
 #define YGyro 0x15
 #define ZGyro 0x17
-#define XOffsetAccel -1179
-#define YOffsetAccel -472
-#define ZOffsetAccel 1805
+#define XOffsetAccel -1252
+#define YOffsetAccel -615
+#define ZOffsetAccel 1800
 #define XOffsetGyro 19
 #define YOffsetGyro -47
 #define ZOffsetGyro 5
