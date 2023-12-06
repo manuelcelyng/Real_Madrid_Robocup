@@ -89,7 +89,7 @@ void control(float e[3][1], float ek[3][1], float ek2[3][1], float q[3][1], floa
     float q0 = kc * (1 + ts / (2 * ti) + td / ts);
     float q1 = -kc * (1 - ts / (2 * ti) + 2*td / ts);
     float q2 = -kc *td/ts;
-    float k[3][1] = {{1}, {1}, {0.01}};
+    float k[3][1] = {{1}, {1}, {0.1}};
     
     // Calculate the rotation matrix R
     float R[3][3];
@@ -107,7 +107,7 @@ void control(float e[3][1], float ek[3][1], float ek2[3][1], float q[3][1], floa
     float u[3][1];
     for (int i = 0; i < 3; i++) {
         u[i][0] = (q0 * e[i][0] + q1 * ek[i][0] + q2 * ek2[i][0])*k[i][0] + uk[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
-        if (i == 2 && e[i][0]<0.1745 && e[i][0]>-0.1745){
+        if (i == 2 && e[i][0]<0.1 && e[i][0]>-0.1){
             u[i][0] = 0;
         }else {
             u[i][0] = kc*(e[i][0])*k[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];

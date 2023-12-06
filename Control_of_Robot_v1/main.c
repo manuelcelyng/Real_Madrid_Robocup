@@ -149,8 +149,7 @@ int main(){
                     qd[2][0] += TO_RAD(value1,0);
                     select_movement = 0;
                 }else if(select_movement == 2){
-                    qd[0][0] += value2*cosf(TO_RAD(value1,0));
-                    qd[1][0] += value2*sinf(TO_RAD(value1,0));
+                    qd[0][0] += value2;
                     select_movement = 0;
                 }
 
@@ -208,12 +207,12 @@ int main(){
                 desiredSpeed[3] = dteta[3][0];  // RUEDA 4
 
                 //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
-                if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
+                if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.1 && e[2][0] < 0.1){
                     run_control_wheels = false;
-                    desiredSpeed[0] = 0;  // RUEDA 1
-                    desiredSpeed[1] = 0;  // RUEDA 2
-                    desiredSpeed[2] = 0;  // RUEDA 3
-                    desiredSpeed[3] = 0;  // RUEDA 4
+                    // desiredSpeed[0] = 0;  // RUEDA 1
+                    // desiredSpeed[1] = 0;  // RUEDA 2
+                    // desiredSpeed[2] = 0;  // RUEDA 3
+                    // desiredSpeed[3] = 0;  // RUEDA 4
                     
                     // printf("%f, %f, %f \n", e[0][0], e[1][0], e[2][0]);
                 }
