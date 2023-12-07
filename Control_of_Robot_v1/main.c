@@ -197,7 +197,7 @@ int main(){
                 mutex_enter_blocking(&my_mutex);
                 for(int i = 0 ; i<4 ; i++){
                     constansP[i] = 10*exp(-1*e[2][0]*e[2][0]) + constansP_C[i];
-                    
+                    //constansI[i] = 0.05*exp(-1*e[2][0]*e[2][0]) + constansI_C[i];
                     //constansD[i] = 0.5*exp(-1*e[2][0]*e[2][0]) + constansD_C[i];
                 } // for
                 mutex_exit(&my_mutex);
@@ -252,22 +252,6 @@ int main(){
                 desiredSpeed[1] = dteta[1][0];  // RUEDA 2
                 desiredSpeed[2] = dteta[2][0];  // RUEDA 3
                 desiredSpeed[3] = dteta[3][0];  // RUEDA 4
-<<<<<<< HEAD
-=======
-                printf("%f, %f, %f, %f \n", dteta[0][0], dteta[1][0], dteta[2][0], dteta[3][0]);
-                //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
-                if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.1 && e[2][0] < 0.1){
-                    run_control_wheels = false;
-                    // desiredSpeed[0] = 0;  // RUEDA 1
-                    // desiredSpeed[1] = 0;  // RUEDA 2
-                    // desiredSpeed[2] = 0;  // RUEDA 3
-                    // desiredSpeed[3] = 0;  // RUEDA 4
-                    
-                    // printf("%f, %f, %f \n", e[0][0], e[1][0], e[2][0]);
-                }
-                // printf("q0 : %f  - q1: %f \n", q[0][0], q[1][0]);
-               
->>>>>>> 312441537e419307154487f1328cb187981e64fa
                 
                 mutex_exit(&my_mutex);
             } // while
