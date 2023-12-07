@@ -16,13 +16,16 @@
 
 
 // para habilitar el control del otro core
-bool run_control_wheels = false;
-
+volatile bool run_control_wheels = false;
+volatile int contador_finalización = 0;
 // Mutex para proteger el acceso a la variable compartida
 static mutex_t my_mutex ;
 static mutex_t my_mutex2;
+static mutex_t my_mutex3;
 
 // gyro de la IMU y bandera
+long double ang_z_prev = 0;
+long double ang_z = 0;
 int16_t gyro = 0;
 int16_t acceleration[3] = {0,0,0};
 volatile bool timer_fired = false;
@@ -39,6 +42,13 @@ bool repeating_timer_callback(struct repeating_timer *t) {
     mutex_enter_blocking(&my_mutex2);
     mpu6050_read_raw(&gyro, acceleration);
     mutex_exit(&my_mutex2);
+    if(gyro > 60 || gyro < -60){ 
+        ang_z = gyro*IMU_INTERVAL_TIMER_US;
+        //ang_z /= 16400000.0;
+        ang_z /= 939650784.0;
+        ang_z += ang_z_prev;
+        ang_z_prev=ang_z;
+    }
     timer_fired =  true;
 
     return true;
@@ -60,6 +70,7 @@ int main(){
     // defino los mutexes necesarios para la correcta ejecución del programa.
     mutex_init(&my_mutex);
     mutex_init(&my_mutex2);
+    mutex_init(&my_mutex3);
     // Initialize motor control _ init motors with pwm for stop and init bluetooth
     initMotorControl();
     sleep_ms(3000);
@@ -76,10 +87,13 @@ int main(){
     }
     // Inicializa el Bluetooth
     initUart(GPIO_UART_TX, GPIO_UART_RX);
+
+   
     // inicializo el otro core 
     multicore_launch_core1(main2); 
     // CONTROL PID - ROBOT 
     //control space
+    int cantidad_vel_zero = 0;
     float delta = 0.001;
     float q[3][1] = {{0}, {0}, {0}};
     float T = 30;
@@ -95,8 +109,7 @@ int main(){
     //Imu variables
     int32_t tiempo_prev = 0;
     int32_t dt;
-    long double ang_z_prev = 0;
-    long double ang_z = 0;
+
     long double vel = 0;
     long double dist = 0;
     // Calculate qd
@@ -119,15 +132,10 @@ int main(){
                     tight_loop_contents();
                 } // while
                 timer_fired =  false;
+                printf("imu %f \n" ,  ang_z);
 
                 //Calcular angulo de rotación con giroscopio
-                if(gyro > 60 || gyro < -60){ 
-                    ang_z = gyro*IMU_INTERVAL_TIMER_US;
-                    //ang_z /= 16400000.0;
-                    ang_z /= 939650784.0;
-                    ang_z += ang_z_prev;
-                    ang_z_prev=ang_z;
-                } // if
+                 // if
                 // if (acceleration[0] > 60 || acceleration[0] < -60)                {
                 //     vel += acceleration[0] * (9.81/4096.0)*0.005;
                 //     dist += vel*0.005;
@@ -171,12 +179,13 @@ int main(){
                 } // for
 
                 // CAMBIAMOS LAS CONSTANTES DEL PID
-                // printf("%f \n" , q[2][0]);
+                mutex_enter_blocking(&my_mutex);
                 for(int i = 0 ; i<4 ; i++){
                     constansP[i] = 10*exp(-1*e[2][0]*e[2][0]) + constansP_C[i];
-                    //constansI[i] = 0.05*exp(-1*e[2][0]*e[2][0]) + constansI_C[i];
+                    
                     //constansD[i] = 0.5*exp(-1*e[2][0]*e[2][0]) + constansD_C[i];
                 } // for
+                mutex_exit(&my_mutex);
 
                 // Call the control function to update U
                 uk[0][0] = U[0][0];
@@ -195,30 +204,39 @@ int main(){
                 } // for
 
                 
+               
+               
                 mutex_enter_blocking(&my_mutex);
                 if(!run_command){
+                    desiredSpeed[0] = 0;  // RUEDA 1
+                    desiredSpeed[1] = 0;  // RUEDA 2
+                    desiredSpeed[2] = 0;  // RUEDA 3
+                    desiredSpeed[3] = 0;
                     cancel_repeating_timer(&timer);
                     mutex_exit(&my_mutex);
-                    
                     break;
                 }
+
+                printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
+                if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
+                //if(dteta[0][0] ==0 && dteta[1][0] ==0 && dteta[2][0] ==0 && dteta[3][0] ==0  ){
+                    
+                    run_control_wheels =  false;
+              
+                   
+                    // if(!run_command){
+                    // cancel_repeating_timer(&timer);
+                    // mutex_exit(&my_mutex);
+                    
+                    // break;
+                    // }
+                    // printf("%f, %f, %f \n", e[0][0], e[1][0], e[2][0]);
+                }
+                // printf("q0 : %f  - q1: %f \n", q[0][0], q[1][0]);
                 desiredSpeed[0] = dteta[0][0];  // RUEDA 1
                 desiredSpeed[1] = dteta[1][0];  // RUEDA 2
                 desiredSpeed[2] = dteta[2][0];  // RUEDA 3
                 desiredSpeed[3] = dteta[3][0];  // RUEDA 4
-
-                //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
-                if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
-                    run_control_wheels = false;
-                    desiredSpeed[0] = 0;  // RUEDA 1
-                    desiredSpeed[1] = 0;  // RUEDA 2
-                    desiredSpeed[2] = 0;  // RUEDA 3
-                    desiredSpeed[3] = 0;  // RUEDA 4
-                    
-                    // printf("%f, %f, %f \n", e[0][0], e[1][0], e[2][0]);
-                }
-                // printf("q0 : %f  - q1: %f \n", q[0][0], q[1][0]);
-               
                 
                 mutex_exit(&my_mutex);
             } // while
@@ -228,17 +246,11 @@ int main(){
             //printf("Habilita interrupcion \n");
             __wfi();
             if(run_command){
-                // qd[0][0] = 0;
-                // qd[1][0] = 0;
-                // qd[2][0] = 0;
-                // q[0][0] = 0;
-                // q[1][0] = 0;
-                // q[2][0] = 0;
-                // ang_z = 0;
+                mutex_enter_blocking(&my_mutex3);
+                run_control_wheels =  true;
+                mutex_exit(&my_mutex3);
                 irq_set_enabled(UART1_IRQ, false);
-                run_control_wheels = true;
                 add_repeating_timer_ms(IMU_INTERVAL_TIMER_MS, repeating_timer_callback, NULL, &timer);
-                __sev(); // Lanza el evento
             }
            
              
@@ -259,6 +271,12 @@ void main2() {
     // desiredSpeed[1] = -100;
     // desiredSpeed[2] = -100;
     // desiredSpeed[3] = -100;
+     // led de condición de finalización
+    gpio_set_function (GPIO_LED, GPIO_FUNC_SIO);
+    gpio_init(GPIO_LED);
+    gpio_set_dir(GPIO_LED   , GPIO_OUT);
+    sleep_ms(2000);
+    gpio_put(GPIO_LED,true);
 
     AngleData startAngle; // struct with all start angles
     // to control when the wheel is stopped
@@ -273,12 +291,7 @@ void main2() {
     struct repeating_timer timer;
     struct repeating_timer timer2;
     alarm_pool_t *pool11=  alarm_pool_create(1,2);
-    //add_repeating_timer_us(SAMPLING_TIME, repeating_timer_callback2, NULL, &timer);
-    //add_repeating_timer_us(ENCODER_TIMER_TOTAL_VALUE_US, repeating_timer_callback21, NULL, &timer2);
-
-    // for(int f= 0 ; f<4 ; f++){
-    //     duty[f] = 740;
-    // }
+ 
 
     while(true){
         
@@ -399,10 +412,9 @@ void main2() {
                 if(!run_control_wheels){
                     for(int i = 0 ; i<4; i++){
                         // printf("error_previo R %d : %f\n",i+1,pidPreviousError[i]);
-                        if(desiredSpeed[i] < 1 && desiredSpeed[i] > -1){
+                        if(pidPreviousError[i] < 5 && pidPreviousError[i] > -5){
                             if(i==3){
-                                run_control_wheels = false;
-                                run_command =  false;
+                                contador_finalización++;
                             }
                         }
                         else{
@@ -410,13 +422,17 @@ void main2() {
                             break;
                         }
                     }
-                    if(!run_control_wheels){
+                    if(contador_finalización ==5){
                         for(int i = 0; i<4 ; i++){
                             pid[i] = 0;
                             duty[i] = 750;
                             adjustPWM(i);
                         }
+                        run_command = false;
+                        run_control_wheels = false;
+                        contador_finalización = 0;
                         mutex_exit(&my_mutex);
+                      
                         break;
                     }
                 }  
@@ -428,12 +444,24 @@ void main2() {
 
             }// end while_control_wheel
             
-
+   
+   
 
         }// end if
 
         else{
-            __wfe();
+            gpio_put(GPIO_LED,true);
+            while (1)
+            {   
+                mutex_enter_blocking(&my_mutex3);
+                if(run_control_wheels){
+                    break;
+                }   
+                mutex_exit(&my_mutex3);
+                tight_loop_contents();
+            }
+            mutex_exit(&my_mutex3);
+            gpio_put(GPIO_LED,false);
             
         }  
 
