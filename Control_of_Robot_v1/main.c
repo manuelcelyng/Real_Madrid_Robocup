@@ -96,7 +96,7 @@ int main(){
     int cantidad_vel_zero = 0;
     float delta = 0.001;
     float q[3][1] = {{0}, {0}, {0}};
-    float T = 30;
+    float T = 8;
     float b = 2 * 3.141592653589793 / T;
     float ek[3][1] = {{0}, {0}, {0}};
     float ek2[3][1] = {{0}, {0}, {0}};
@@ -112,6 +112,9 @@ int main(){
 
     long double vel = 0;
     long double dist = 0;
+    bool cirMov = false;
+    int centro[2] = {0,0};
+    int radio = 0;
     // Calculate qd
     float qd[3][1];
     qd[0][0] = 0;//q[0][0];//-4*sinf(b * t_i)*sinf(b * t_i);
@@ -150,16 +153,28 @@ int main(){
                 //printf("ay: %f\n", ay_m_s2);            
 
                 // CONTROL GENERAL DEL CARRO
-
-                float t_i = (time_us_64()-offset_time)*1e-6;
-
                 if(select_movement == 1){
                     qd[2][0] += TO_RAD(value1,0);
                     select_movement = 0;
                 }else if(select_movement == 2){
-                    qd[0][0] += value2*cosf(TO_RAD(value1,0));
-                    qd[1][0] += value2*sinf(TO_RAD(value1,0));
+                    qd[0][0] += value1;
                     select_movement = 0;
+                }else if(select_movement == 3){
+                    centro[0] = q[0][0]-value1;
+                    centro[1] = q[0][1];
+                    radio = value1;
+                    offset_time = time_us_64();
+                    cirMov = true;
+                    select_movement = 0;
+                }
+
+                if(cirMov){
+                    float t_i = (time_us_64()-offset_time)*1e-6;
+                    qd[0][0] = centro[0]+0.1*radio*cosf(b * t_i);
+                    qd[1][0] = centro[1]+0.1*radio*sinf(b * t_i);
+                    if (qd[0][0] >= (centro[0]+radio-0.001) && qd[1][0] <= centro[1]){
+                        cirMov = false;
+                    }
                 }
 
                 // Update ek
@@ -187,10 +202,10 @@ int main(){
                 } // for
                 mutex_exit(&my_mutex);
 
-                // Call the control function to update U
-                uk[0][0] = U[0][0];
-                uk[1][0] = U[1][0];
-                uk[2][0] = U[2][0];
+                // // Call the control function to update U
+                // uk[0][0] = U[0][0];
+                // uk[1][0] = U[1][0];
+                // uk[2][0] = U[2][0];
                 control(e, ek, ek2, q, uk, U);
 
                 // Call the planta function to calculate dq and dteta
@@ -200,7 +215,7 @@ int main(){
 
                 // Update q
                 for (int j = 0; j < 2; j++) {
-                    q[j][0] += dq[j][0] * delta;
+                    q[j][0] += uk[j][0] * delta;
                 } // for
 
                 
@@ -237,6 +252,22 @@ int main(){
                 desiredSpeed[1] = dteta[1][0];  // RUEDA 2
                 desiredSpeed[2] = dteta[2][0];  // RUEDA 3
                 desiredSpeed[3] = dteta[3][0];  // RUEDA 4
+<<<<<<< HEAD
+=======
+                printf("%f, %f, %f, %f \n", dteta[0][0], dteta[1][0], dteta[2][0], dteta[3][0]);
+                //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
+                if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.1 && e[2][0] < 0.1){
+                    run_control_wheels = false;
+                    // desiredSpeed[0] = 0;  // RUEDA 1
+                    // desiredSpeed[1] = 0;  // RUEDA 2
+                    // desiredSpeed[2] = 0;  // RUEDA 3
+                    // desiredSpeed[3] = 0;  // RUEDA 4
+                    
+                    // printf("%f, %f, %f \n", e[0][0], e[1][0], e[2][0]);
+                }
+                // printf("q0 : %f  - q1: %f \n", q[0][0], q[1][0]);
+               
+>>>>>>> 312441537e419307154487f1328cb187981e64fa
                 
                 mutex_exit(&my_mutex);
             } // while
@@ -340,7 +371,7 @@ void main2() {
                             obtainAngle(startAngle[i],startAngle_bool);
                             mutex_exit(&my_mutex2);  
                             if(startAngle_bool){
-                                startAngle[i] = correctedAngle;
+                                startAngle[i] = correctedAngle; //offset
                                 alarm_pool_add_repeating_timer_us(pool11,TIME_WINDOW_US, repeating_timer_callback21, NULL, &timer2);
                                 startAngle_bool = false;
                             }else{
@@ -385,7 +416,7 @@ void main2() {
                                     speedData[i] = (double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S);
                                 }else{
                                     correctedAngle =  360-correctedAngle;
-                                    speedData[i] = -1*((double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S));
+                                    speedData[i] = ((double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S));
                                 }
                             }
                         
