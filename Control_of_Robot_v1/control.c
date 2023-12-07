@@ -58,11 +58,10 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
     dteta[2][0] = A[2][0]*U[0][0] + A[2][1]*U[1][0] + A[2][2]*U[2][0];
     dteta[3][0] = A[3][0]*U[0][0] + A[3][1]*U[1][0] + A[3][2]*U[2][0];
 
-     dteta[0][0] *= 3;
-     dteta[1][0] *= 3;
-     dteta[2][0] *= 3;
-     dteta[3][0] *= 3;
-
+    dteta[0][0] *= 5;
+    dteta[1][0] *= 5;
+    dteta[2][0] *= 5;
+    dteta[3][0] *= 5;
     // Limitar dteta al rango de -400 a 400
     for (int i = 0; i < 4; i++) {
         if (dteta[i][0] > 150.0) {
@@ -106,12 +105,13 @@ void control(float e[3][1], float ek[3][1], float ek2[3][1], float q[3][1], floa
     // Calculate u
     float u[3][1];
     for (int i = 0; i < 3; i++) {
-        u[i][0] = (q0 * e[i][0] + q1 * ek[i][0] + q2 * ek2[i][0])*k[i][0] + uk[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
+        //u[i][0] = (q0 * e[i][0] + q1 * ek[i][0] + q2 * ek2[i][0])*k[i][0] + uk[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
         if (i == 2 && e[i][0]<0.1 && e[i][0]>-0.1){
             u[i][0] = 0;
         }else {
             u[i][0] = kc*(e[i][0])*k[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
         }
+        uk[i][0] = u[i][0];
     }
     //
 
@@ -177,7 +177,8 @@ void ejecutarMovimiento(char* move, int value_1, int value_2){
 
     // Movimiento DESPLAZAMIENTO CIRCULAR, utilizar value1 es el RADIO, value2 es el ÁNGULO
     if(move[0] == 'C') {
-
+        value1 = value_1;
+        value2 = value_2; 
         //  Desplazamiento circular con un radio determinado ( parámetros :  radio ,  ángulo)
         //printf("DESPLAZAMIENTO CIRCULAR %d, %d\n", value_1, value_2);
         select_movement = 3;
