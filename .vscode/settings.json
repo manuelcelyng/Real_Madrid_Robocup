@@ -23,5 +23,13 @@
   },
   "cmake.generator": "Ninja",
   "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+<<<<<<< HEAD
+  "cmake.sourceDirectory": "C:/Users/manue/Documents/Pico-v1.5.1/MisProyectos/Real_Madrid_Robocup/Control_of_Robot_v1",
+  "files.associations": {
+    "sync.h": "c",
+    "stdio.h": "c"
+  }
+=======
   "cmake.sourceDirectory": "C:/Users/Acer/Documents/Embebidos/Real_Madrid_Robocup/Control_of_Robot_v1"
+>>>>>>> 312441537e419307154487f1328cb187981e64fa
 }

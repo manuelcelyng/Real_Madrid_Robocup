@@ -23,8 +23,8 @@ static int addr = 0x68;
 #define IMU_I2C_SDA_PIN 20
 #define IMU_I2C_SCL_PIN 21
 
-#define IMU_INTERVAL_TIMER_MS 5
-#define IMU_INTERVAL_TIMER_US 5000
+#define IMU_INTERVAL_TIMER_MS 10
+#define IMU_INTERVAL_TIMER_US 10000
 
 /* Example code to talk to a MPU6050 MEMS accelerometer and gyroscope
    This is taking to simple approach of simply reading registers. It's perfectly
