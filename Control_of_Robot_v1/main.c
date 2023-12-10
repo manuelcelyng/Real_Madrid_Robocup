@@ -94,7 +94,7 @@ int main(){
     // CONTROL PID - ROBOT 
     //control space
     int cantidad_vel_zero = 0;
-    float delta = 0.001;
+    float delta = 0.0001;
     float q[3][1] = {{0}, {0}, {0}};
     float T = 8;
     float b = 2 * 3.141592653589793 / T;
@@ -135,7 +135,7 @@ int main(){
                     tight_loop_contents();
                 } // while
                 timer_fired =  false;
-                printf("imu %f \n" ,  ang_z);
+                //printf("imu %f \n" ,  ang_z);
 
                 //Calcular angulo de rotación con giroscopio
                  // if
@@ -160,7 +160,7 @@ int main(){
                     qd[0][0] += value1;
                     select_movement = 0;
                 }else if(select_movement == 3){
-                    centro[0] = q[0][0]-value1;
+                    centro[0] = q[0][0]-0.005*value1;
                     centro[1] = q[0][1];
                     radio = value1;
                     offset_time = time_us_64();
@@ -170,11 +170,11 @@ int main(){
 
                 if(cirMov){
                     float t_i = (time_us_64()-offset_time)*1e-6;
-                    qd[0][0] = centro[0]+0.1*radio*cosf(b * t_i);
-                    qd[1][0] = centro[1]+0.1*radio*sinf(b * t_i);
-                    if (qd[0][0] >= (centro[0]+radio-0.001) && qd[1][0] <= centro[1]){
-                        cirMov = false;
-                    }
+                    qd[0][0] = centro[0]+0.005*radio*cosf(b * t_i);
+                    qd[1][0] = centro[1]+0.005*radio*sinf(b * t_i);
+                    // if (qd[0][0] >= (centro[0]+radio-0.001) && qd[1][0] <= centro[1]){
+                    //     cirMov = false;
+                    // }
                 }
 
                 // Update ek
@@ -197,8 +197,8 @@ int main(){
                 mutex_enter_blocking(&my_mutex);
                 for(int i = 0 ; i<4 ; i++){
                     constansP[i] = 10*exp(-1*e[2][0]*e[2][0]) + constansP_C[i];
-                    //constansI[i] = 0.05*exp(-1*e[2][0]*e[2][0]) + constansI_C[i];
-                    //constansD[i] = 0.5*exp(-1*e[2][0]*e[2][0]) + constansD_C[i];
+                    constansI[i] = 0.05*exp(-1*e[2][0]*e[2][0]) + constansI_C[i];
+                    constansD[i] = 0.5*exp(-1*e[2][0]*e[2][0]) + constansD_C[i];
                 } // for
                 mutex_exit(&my_mutex);
 
@@ -223,6 +223,9 @@ int main(){
                
                 mutex_enter_blocking(&my_mutex);
                 if(!run_command){
+                    ang_z_prev = 0;
+                    q[0][2] = 0;
+                    qd[0][2] = 0;
                     desiredSpeed[0] = 0;  // RUEDA 1
                     desiredSpeed[1] = 0;  // RUEDA 2
                     desiredSpeed[2] = 0;  // RUEDA 3
@@ -232,12 +235,13 @@ int main(){
                     break;
                 }
 
-                printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
+                //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
                 if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
                 //if(dteta[0][0] ==0 && dteta[1][0] ==0 && dteta[2][0] ==0 && dteta[3][0] ==0  ){
                     
                     run_control_wheels =  false;
               
+                   
                    
                     // if(!run_command){
                     // cancel_repeating_timer(&timer);
@@ -473,7 +477,7 @@ void main2() {
                     break;
                 }   
                 mutex_exit(&my_mutex3);
-                tight_loop_contents();
+                
             }
             mutex_exit(&my_mutex3);
             gpio_put(GPIO_LED,false);

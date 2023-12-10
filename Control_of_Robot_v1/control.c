@@ -80,7 +80,7 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
 void control(float e[3][1], float ek[3][1], float ek2[3][1], float q[3][1], float uk[3][1], float U[3][1]) {
     float kc = 100;
     float v_max = 10.0;
-    float w_max = 2;
+    float w_max = 8;
     float ti = 0.01;
     float ts = 0.06;
     float td = 0.001;
@@ -88,7 +88,7 @@ void control(float e[3][1], float ek[3][1], float ek2[3][1], float q[3][1], floa
     float q0 = kc * (1 + ts / (2 * ti) + td / ts);
     float q1 = -kc * (1 - ts / (2 * ti) + 2*td / ts);
     float q2 = -kc *td/ts;
-    float k[3][1] = {{1}, {1}, {0.1}};
+    float k[3][1] = {{1}, {1}, {0.05}};
     
     // Calculate the rotation matrix R
     float R[3][3];
