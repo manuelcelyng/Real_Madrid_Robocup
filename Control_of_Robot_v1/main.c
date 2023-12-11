@@ -160,7 +160,7 @@ int main(){
                     qd[0][0] += 0.022*value1;
                     select_movement = 0;
                 }else if(select_movement == 3){
-                    radio = 0.0165*value1;
+                    radio = 0.017*value1;
                     centro[0] = radio-q[0][0];
                     centro[1] = q[0][1];                    
                     offset_time = time_us_64();
