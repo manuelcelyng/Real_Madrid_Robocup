@@ -39,18 +39,18 @@ bool repeating_timer_callback2(struct repeating_timer *t);
 bool repeating_timer_callback21(struct repeating_timer *t);
 
 bool repeating_timer_callback(struct repeating_timer *t) {
-    mutex_enter_blocking(&my_mutex2);
-    mpu6050_read_raw(&gyro, acceleration);
-    mutex_exit(&my_mutex2);
-    if(gyro > 60 || gyro < -60){ 
-        ang_z = gyro*IMU_INTERVAL_TIMER_US;
-        //ang_z /= 16400000.0;
-        ang_z /= 939650784.0;
-        ang_z += ang_z_prev;
-        ang_z_prev=ang_z;
+    if(mutex_enter_timeout_ms(&my_mutex2, 5)){
+        mpu6050_read_raw(&gyro, acceleration);
+        mutex_exit(&my_mutex2);
+        if(gyro > 60 || gyro < -60){ 
+            ang_z = gyro*IMU_INTERVAL_TIMER_US;
+            //ang_z /= 16400000.0;
+            ang_z /= 939650784.0;
+            ang_z += ang_z_prev;
+            ang_z_prev=ang_z;
+        }
+        timer_fired =  true;
     }
-    timer_fired =  true;
-
     return true;
 }
 
@@ -115,6 +115,7 @@ int main(){
     bool cirMov = false;
     double centro[2] = {0.0,0.0};
     double radio = 0;
+    double angulo = 0;
     // Calculate qd
     float qd[3][1];
     qd[0][0] = 0;//q[0][0];//-4*sinf(b * t_i)*sinf(b * t_i);
@@ -134,7 +135,7 @@ int main(){
                 {
                     tight_loop_contents();
                 } // while
-                timer_fired =  false;
+                timer_fired = false;
                 //printf("imu %f \n" ,  ang_z);
 
                 //Calcular angulo de rotación con giroscopio
@@ -160,19 +161,20 @@ int main(){
                     qd[0][0] += 0.022*value1;
                     select_movement = 0;
                 }else if(select_movement == 3){
+                    angulo = TO_RAD(value2,0);
                     radio = 0.017*value1;
-                    centro[0] = radio-q[0][0];
-                    centro[1] = q[0][1];                    
+                    centro[0] = q[0][0];
+                    centro[1] = q[0][1]-radio;                    
                     offset_time = time_us_64();
                     cirMov = true;
                     select_movement = 0;
                 }
 
-                if(cirMov){
+                if(cirMov){    
                     float t_i = (time_us_64()-offset_time)*1e-6;
-                    qd[1][0] = centro[0]-radio*cosf(b * t_i);
-                    qd[0][0] = centro[1]+radio*sinf(b * t_i);
-                    if (b * t_i > PI){
+                    qd[0][0] = centro[0]+radio*sinf(b * t_i);
+                    qd[1][0] = centro[1]+radio*cosf(b * t_i);
+                    if (b * t_i > angulo){
                         cirMov = false;
                     }
                 }
@@ -219,45 +221,36 @@ int main(){
                 } // for
 
                 
-               
-               
-                mutex_enter_blocking(&my_mutex);
-                if(!run_command){
-                    ang_z_prev = 0;
-                    q[0][2] = 0;
-                    qd[0][2] = 0;
-                    desiredSpeed[0] = 0;  // RUEDA 1
-                    desiredSpeed[1] = 0;  // RUEDA 2
-                    desiredSpeed[2] = 0;  // RUEDA 3
-                    desiredSpeed[3] = 0;
-                    cancel_repeating_timer(&timer);
-                    mutex_exit(&my_mutex);
-                    break;
-                }
+                if(mutex_enter_timeout_ms(&my_mutex, 5 )){
+                    if(!run_command){
+                        cancel_repeating_timer(&timer);
+                        timer_fired = false;
+                        ang_z_prev = 0;
+                        ang_z = 0;
+                        q[0][2] = 0;
+                        qd[0][2] = 0;
+                        desiredSpeed[0] = 0;  // RUEDA 1
+                        desiredSpeed[1] = 0;  // RUEDA 2
+                        desiredSpeed[2] = 0;  // RUEDA 3
+                        desiredSpeed[3] = 0;
+                        mutex_exit(&my_mutex);
+                        break;
+                    }
 
-                //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
-                if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
-                //if(dteta[0][0] ==0 && dteta[1][0] ==0 && dteta[2][0] ==0 && dteta[3][0] ==0  ){
-                    
-                    run_control_wheels =  false;
-              
-                   
-                   
-                    // if(!run_command){
-                    // cancel_repeating_timer(&timer);
-                    // mutex_exit(&my_mutex);
-                    
-                    // break;
-                    // }
-                    // printf("%f, %f, %f \n", e[0][0], e[1][0], e[2][0]);
+                    //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
+                    if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
+                    //if(dteta[0][0] ==0 && dteta[1][0] ==0 && dteta[2][0] ==0 && dteta[3][0] ==0  ){
+                        
+                        run_control_wheels =  false;
+                    }
+                    // printf("q0 : %f  - q1: %f \n", q[0][0], q[1][0]);
+                    desiredSpeed[0] = dteta[0][0];  // RUEDA 1
+                    desiredSpeed[1] = dteta[1][0];  // RUEDA 2
+                    desiredSpeed[2] = dteta[2][0];  // RUEDA 3
+                    desiredSpeed[3] = dteta[3][0];  // RUEDA 4
+                    mutex_exit(&my_mutex);
                 }
-                // printf("q0 : %f  - q1: %f \n", q[0][0], q[1][0]);
-                desiredSpeed[0] = dteta[0][0];  // RUEDA 1
-                desiredSpeed[1] = dteta[1][0];  // RUEDA 2
-                desiredSpeed[2] = dteta[2][0];  // RUEDA 3
-                desiredSpeed[3] = dteta[3][0];  // RUEDA 4
                 
-                mutex_exit(&my_mutex);
             } // while
         } // if
         else{
@@ -355,9 +348,11 @@ void main2() {
                         if(timer_fired2){
                             previousAngle = correctedAngle;
                             // MUTEX FOR I2C
-                            mutex_enter_blocking(&my_mutex2);
-                            obtainAngle(startAngle[i],startAngle_bool);
-                            mutex_exit(&my_mutex2);  
+                            if(mutex_enter_timeout_us(&my_mutex2,500)){
+                                obtainAngle(startAngle[i],startAngle_bool);
+                                mutex_exit(&my_mutex2);
+                            }
+                              
                             if(startAngle_bool){
                                 startAngle[i] = correctedAngle; //offset
                                 alarm_pool_add_repeating_timer_us(pool11,TIME_WINDOW_US, repeating_timer_callback21, NULL, &timer2);
@@ -404,7 +399,7 @@ void main2() {
                                     speedData[i] = (double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S);
                                 }else{
                                     correctedAngle =  360-correctedAngle;
-                                    speedData[i] = ((double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S));
+                                    speedData[i] = -1*((double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S));
                                 }
                             }
                         
@@ -413,6 +408,7 @@ void main2() {
 
                             
                             timer_fired21 =  false;
+                            timer_fired2  = false;
 
                             // Ajusto la velocidad de una vez;
                             mutex_enter_blocking(&my_mutex);
@@ -451,7 +447,6 @@ void main2() {
                         run_control_wheels = false;
                         contador_finalización = 0;
                         mutex_exit(&my_mutex);
-                      
                         break;
                     }
                 }  

@@ -112,7 +112,7 @@ typedef double PIDErrorData[4];
 
 // Declaro las variables como externas para verlas desde el main
 extern SpeedData speedData;
-extern DesiredSpeedData desiredSpeed;
+extern volatile DesiredSpeedData desiredSpeed;
 extern PIDData pid;
 extern PIDIntegralData pidIntegral;
 extern PIDErrorData pidPreviousError;

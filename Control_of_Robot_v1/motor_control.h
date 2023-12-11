@@ -16,8 +16,8 @@
 #define PWM_GPIO_MOTOR_FOUR  6  // PIN 9  - RUEDA 4
 #define FRECUENCY_ALL_PWM_MOTORS 50
 
-#define MAX_DUTY 800
-#define MIN_DUTY 700
+#define MAX_DUTY 795
+#define MIN_DUTY 720
 
 // vector for duty
 typedef double DutyCycle[4];
