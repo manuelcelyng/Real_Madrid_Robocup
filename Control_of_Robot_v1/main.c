@@ -113,8 +113,8 @@ int main(){
     long double vel = 0;
     long double dist = 0;
     bool cirMov = false;
-    int centro[2] = {0,0};
-    int radio = 0;
+    double centro[2] = {0.0,0.0};
+    double radio = 0;
     // Calculate qd
     float qd[3][1];
     qd[0][0] = 0;//q[0][0];//-4*sinf(b * t_i)*sinf(b * t_i);
@@ -157,12 +157,12 @@ int main(){
                     qd[2][0] += TO_RAD(value1,0);
                     select_movement = 0;
                 }else if(select_movement == 2){
-                    qd[0][0] += value1;
+                    qd[0][0] += 0.022*value1;
                     select_movement = 0;
                 }else if(select_movement == 3){
-                    centro[0] = q[0][0]-0.005*value1;
-                    centro[1] = q[0][1];
-                    radio = value1;
+                    radio = 0.0165*value1;
+                    centro[0] = radio-q[0][0];
+                    centro[1] = q[0][1];                    
                     offset_time = time_us_64();
                     cirMov = true;
                     select_movement = 0;
@@ -170,11 +170,11 @@ int main(){
 
                 if(cirMov){
                     float t_i = (time_us_64()-offset_time)*1e-6;
-                    qd[0][0] = centro[0]+0.005*radio*cosf(b * t_i);
-                    qd[1][0] = centro[1]+0.005*radio*sinf(b * t_i);
-                    // if (qd[0][0] >= (centro[0]+radio-0.001) && qd[1][0] <= centro[1]){
-                    //     cirMov = false;
-                    // }
+                    qd[1][0] = centro[0]-radio*cosf(b * t_i);
+                    qd[0][0] = centro[1]+radio*sinf(b * t_i);
+                    if (b * t_i > PI){
+                        cirMov = false;
+                    }
                 }
 
                 // Update ek
