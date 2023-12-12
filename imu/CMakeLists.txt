@@ -8,7 +8,7 @@ project(imu)
 pico_sdk_init()
 
 add_executable(myimu
-    calibration.c
+    myimu.c
     imu.c
 )
 
