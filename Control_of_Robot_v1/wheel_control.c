@@ -179,8 +179,6 @@ void obtainAngle( double startAngle, bool start){
     // 0000000011111111[1]  -> encoder send us bits 0:7   // TOTAL 12 BITS INFORMATION
     uint8_t buffer[2];  // buffer[0] guarda los más significativos, y buffer[1] guarda los menos significativos.
     _uint_16_t aux;
-
-    printf("entra;\n");
     // info de los registros y los estados del enconder. 
     i2c_write_blocking(i2c1, ENCODER_ADDR,&RAWANGLE_L,1, true);
     i2c_read_blocking(i2c1, ENCODER_ADDR, &buffer[1],1,true);

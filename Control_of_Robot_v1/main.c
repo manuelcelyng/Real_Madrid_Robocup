@@ -39,6 +39,7 @@ bool repeating_timer_callback2(struct repeating_timer *t);
 bool repeating_timer_callback21(struct repeating_timer *t);
 
 bool repeating_timer_callback(struct repeating_timer *t) {
+    printf("imu\n");
     if(mutex_enter_timeout_ms(&my_mutex2, 5)){
         mpu6050_read_raw(&gyro, acceleration);
         mutex_exit(&my_mutex2);
@@ -124,7 +125,7 @@ int main(){
 
     // DEFINE THE REPEATING TIMER FOR IMU
     struct repeating_timer timer;
-    
+    float t_i = 0;
 
     while (1)
     {
@@ -162,7 +163,7 @@ int main(){
                     select_movement = 0;
                 }else if(select_movement == 3){
                     angulo = TO_RAD(value2,0);
-                    radio = 0.017*value1;
+                    radio = 0.032*value1;
                     centro[0] = q[0][0];
                     centro[1] = q[0][1]-radio;                    
                     offset_time = time_us_64();
@@ -171,7 +172,8 @@ int main(){
                 }
 
                 if(cirMov){    
-                    float t_i = (time_us_64()-offset_time)*1e-6;
+                    t_i += IMU_INTERVAL_TIMER_MS*1e-3;//(time_us_64()-offset_time)*1e-6;
+                    printf("time %f\n", t_i);
                     qd[0][0] = centro[0]+radio*sinf(b * t_i);
                     qd[1][0] = centro[1]+radio*cosf(b * t_i);
                     if (b * t_i > angulo){
@@ -238,11 +240,11 @@ int main(){
                     }
 
                     //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
-                    if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
-                    //if(dteta[0][0] ==0 && dteta[1][0] ==0 && dteta[2][0] ==0 && dteta[3][0] ==0  ){
+                    // if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
+                    // //if(dteta[0][0] ==0 && dteta[1][0] ==0 && dteta[2][0] ==0 && dteta[3][0] ==0  ){
                         
-                        run_control_wheels =  false;
-                    }
+                    //     run_control_wheels =  false;
+                    // }
                     // printf("q0 : %f  - q1: %f \n", q[0][0], q[1][0]);
                     desiredSpeed[0] = dteta[0][0];  // RUEDA 1
                     desiredSpeed[1] = dteta[1][0];  // RUEDA 2
@@ -261,7 +263,7 @@ int main(){
                 mutex_enter_blocking(&my_mutex3);
                 run_control_wheels =  true;
                 mutex_exit(&my_mutex3);
-                irq_set_enabled(UART1_IRQ, false);
+                //irq_set_enabled(UART1_IRQ, false);
                 add_repeating_timer_ms(IMU_INTERVAL_TIMER_MS, repeating_timer_callback, NULL, &timer);
             }
            
@@ -278,6 +280,7 @@ int main(){
 // wait for init from main or core 0
 // CORE 1
 void main2() {
+    int muestras_encoder =0; 
 
     // desiredSpeed[0] = -100;
     // desiredSpeed[1] = -100;
@@ -337,7 +340,7 @@ void main2() {
                     startAngle_bool =  true; // para indicar que la primera muestra es un offset
                     corrected_encoder_error = 0; // para validar que las muestras sean coherentes con el giro de la rueda
                     flag_sample = false; // para definir que despues del offset se inicia con el calculo del corrected_encoder_error
-
+                    muestras_encoder = 0;
                     //Inicializo el timer de muestreo 
                     //add_repeating_timer_us(SAMPLING_TIME, repeating_timer_callback2, NULL, &timer);
                     alarm_pool_add_repeating_timer_us(pool11,SAMPLING_TIME, repeating_timer_callback2, NULL, &timer);
@@ -348,19 +351,19 @@ void main2() {
                         if(timer_fired2){
                             previousAngle = correctedAngle;
                             // MUTEX FOR I2C
-                            if(mutex_enter_timeout_us(&my_mutex2,500)){
-                                obtainAngle(startAngle[i],startAngle_bool);
-                                mutex_exit(&my_mutex2);
-                            }
+                            mutex_enter_blocking(&my_mutex2);
+                            obtainAngle(startAngle[i],startAngle_bool);
+                            mutex_exit(&my_mutex2);
+                            
                               
                             if(startAngle_bool){
                                 startAngle[i] = correctedAngle; //offset
-                                alarm_pool_add_repeating_timer_us(pool11,TIME_WINDOW_US, repeating_timer_callback21, NULL, &timer2);
                                 startAngle_bool = false;
                             }else{
                                 if(!flag_sample){
                                     flag_sample = true;
                                 }else{
+                                    muestras_encoder++;
                                     if((correctedAngle - previousAngle)<0){
                                         corrected_encoder_error-=1;  // disminuye el angulo - pwm >750 , antihorario
                                     }else{ 
@@ -375,10 +378,9 @@ void main2() {
                         }
                         
                         // if de la ventana de tiempo durante la cual se tomarán muestras.
-                        if(timer_fired21){
+                        if(muestras_encoder == 4){
                             cancel_repeating_timer(&timer);
-                            cancel_repeating_timer(&timer2);
-                            
+                            timer_fired2 = false;
                             valid_quadrant = ((int)(correctedAngle/90) + 1) -  ((int)(previousAngle/90) + 1);
                             previousAngle =  correctedAngle-previousAngle;
                             //previosAngle_direction = previousAngle;
@@ -399,16 +401,10 @@ void main2() {
                                     speedData[i] = (double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S);
                                 }else{
                                     correctedAngle =  360-correctedAngle;
-                                    speedData[i] = -1*((double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S));
+                                    speedData[i] = ((double)((TO_RAD(correctedAngle, numberTurns))*INV_TIME_WINDOW_S));
                                 }
                             }
-                        
-                            // printf("angulo R %d: %f \n",i+1, correctedAngle);
-                            // printf("speedData RUEDA %d : %f \n", i+1 ,  speedData[i] );
-
-                            
-                            timer_fired21 =  false;
-                            timer_fired2  = false;
+                
 
                             // Ajusto la velocidad de una vez;
                             mutex_enter_blocking(&my_mutex);
