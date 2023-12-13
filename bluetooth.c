@@ -20,7 +20,7 @@ char buffer[BUFFER_SIZE]= {0};
 // QUITAR EL MALLOC Y FREE DE LA ISR
 
 void uart_rx_handler() {
-    // irq_clear(UART1_IRQ);
+    irq_clear(UART1_IRQ);
     char data;
     while (uart_is_readable(uart1)) {    
         

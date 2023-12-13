@@ -127,14 +127,15 @@ void TaskvImuSample(void *pvParameters) {
         mpu6050_read_raw(&gyro, acceleration);
         xSemaphoreGive(xMutexSharedI2C);
         if(gyro > 60 || gyro < -60){ 
-            ang_z = gyro*IMU_INTERVAL_TIMER_US;
+            ang_z = -gyro*IMU_INTERVAL_TIMER_US;
             //ang_z /= 16400000.0;
             ang_z /= 939650784.0;
             ang_z += ang_z_prev;
             ang_z_prev=ang_z;
         }
+        printf("%f\n", ang_z);
         xSemaphoreGive(xSemaphoreIMUCheck);
-        // angulo_calculado =  gyro;
+  
 
        
     }
@@ -162,8 +163,8 @@ void TaskvMainControl(void *pvParameters) {
     //Imu variables
     int32_t tiempo_prev = 0;
     int32_t dt;
-    long double ang_z_prev = 0;
-    long double ang_z = 0;
+    // long double ang_z_prev = 0;
+    // long double ang_z = 0;
     long double vel = 0;
     long double dist = 0;
 
@@ -180,6 +181,9 @@ void TaskvMainControl(void *pvParameters) {
     
     bool taskState =  false;
     DataGroup bluetoothCommands;
+    bluetoothCommands.movement=0;
+    bluetoothCommands.value1 = 0;
+    bluetoothCommands.value2 = 0;
     // int16_t angulo=0;
     run_command = true;
 
@@ -204,7 +208,7 @@ void TaskvMainControl(void *pvParameters) {
                 bluetoothCommands.movement = 0;
             }else if(bluetoothCommands.movement == 3){
                 angulo = TO_RAD(bluetoothCommands.value2,0);
-                radio = 0.032*bluetoothCommands.value1;
+                radio = 0.020*bluetoothCommands.value1;
                 centro[0] = q[0][0];
                 centro[1] = q[0][1]-radio;                    
                 //offset_time = time_us_64();
@@ -219,6 +223,7 @@ void TaskvMainControl(void *pvParameters) {
                 qd[1][0] = centro[1]+radio*cosf(b * t_i);
                 if (b * t_i > angulo){
                     cirMov = false;
+                    t_i = 0;
                 }
             }
 
@@ -278,22 +283,22 @@ void TaskvMainControl(void *pvParameters) {
                 desiredSpeed[2] = 0;  // RUEDA 3
                 desiredSpeed[3] = 0;  // RUEDA 4
                 
-            }else{
-                //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
-                // if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
-                // //if(dteta[0][0] ==0 && dteta[1][0] ==0 && dteta[2][0] ==0 && dteta[3][0] ==0  ){
-                    
-                //     run_control_wheels =  false;
-                // }
+             }
+            //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
+            // if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
+            // //if(dteta[0][0] ==0 && dteta[1][0] ==0 && dteta[2][0] ==0 && dteta[3][0] ==0  ){
+                
+            //     run_control_wheels =  false;
+            // }
 
-                desiredSpeed[0] = dteta[0][0];  // RUEDA 1
-                desiredSpeed[1] = dteta[1][0];  // RUEDA 2
-                desiredSpeed[2] = dteta[2][0];  // RUEDA 3
-                desiredSpeed[3] = dteta[3][0];  // RUEDA 4
-                //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
+            desiredSpeed[0] = dteta[0][0];  // RUEDA 1
+            desiredSpeed[1] = dteta[1][0];  // RUEDA 2
+            desiredSpeed[2] = dteta[2][0];  // RUEDA 3
+            desiredSpeed[3] = dteta[3][0];  // RUEDA 4
+            //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
 
                 
-            }
+            
             xSemaphoreGive(xMutexSharedResources);
 
 
@@ -380,6 +385,8 @@ void TaskvEncoderSample(void *pvParameters){
 }
 */
 
+
+// Tarea que hace el control de las ruedas.
 void TaskvPIDWheels(void *pvParameters) {
     pool11 =  alarm_pool_create(1,2);
     int valid_quadrant = 0 ;
@@ -569,7 +576,7 @@ int main() {
     gpio_init(GPIO_LED);
     gpio_set_dir(GPIO_LED   , GPIO_OUT);
     sleep_ms(2000);
-    gpio_put(GPIO_LED,true);
+    gpio_put(GPIO_LED,false);
 
     // Define the task handles
     
@@ -592,7 +599,7 @@ int main() {
     xQueueBluetoothCommands = xQueueCreate(1, sizeof(DataGroup) );
     // xQueueAnguloImu =  xQueueCreate(1, sizeof(int16_t) );
     //xQueueAngleEncoder =  xQueueCreate(1, sizeof(DataAngle));
-    xQueueISRBluetooth = xQueueCreate(1, sizeof(char[20]));
+    xQueueISRBluetooth = xQueueCreate(1, sizeof(char[BUFFER_SIZE]));
 
     //TIMER EJECUTANDOSE EN EL CORE 1
 
@@ -603,7 +610,7 @@ int main() {
     xTaskCreate(TaskvMainControl, "TaskMainControl", configMINIMAL_STACK_SIZE, NULL, 1, &handle2);
     //xTaskCreate(TaskvEncoderSample, "TaskEncoder", configMINIMAL_STACK_SIZE, NULL, 1, &handle3);
     xTaskCreate(TaskvPIDWheels, "TaskWheelsControl", configMINIMAL_STACK_SIZE, NULL, 1 , &handle4);
-    xTaskCreate(TaskvBluetooth, "TaskBluetooth", configMINIMAL_STACK_SIZE, NULL, 5 , &handle5);
+    xTaskCreate(TaskvBluetooth, "TaskBluetooth", configMINIMAL_STACK_SIZE, NULL, 1 , &handle5);
 
     // Pin Tasks
     vTaskCoreAffinitySet(handle1, (1 << 0)); // Core 0

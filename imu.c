@@ -17,18 +17,22 @@ void mpu6050_reset() {
     uint8_t buf[] = {0x6B, 0x00};
     i2c_write_blocking(i2c_default, addr, buf, 2, false);
     
-    uint8_t buf1[] = {0x1A, 0x00};
-    // Switch on the low-pass filter.
-    i2c_write_blocking(i2c_default, addr, buf1, 2, false);;
+    uint8_t buf3[] = {0x1A, 0x07};
+    // Switch on the low-pass filter of accelerometer.
+    i2c_write_blocking(i2c_default, addr, buf3, 2, false);
+
+    uint8_t buf1[] = {0x1B, 0x18};
+    // Configure full scale range of gyroscope +-2000 grados/segundo
+    i2c_write_blocking(i2c_default, addr, buf1, 2, false);
   
-    uint8_t buf2[] = {0x1C, 0x10};
+    int8_t buf2[] = {0x1C, 0x10};
     // configure the accelerometer output -  AFS_SEL  +-8g scale range off acelerometer
-    i2c_write_blocking(i2c_default, addr, buf2, 2, false);;
-  
-    uint8_t buf3[] = {0x1B, 0x18};
-    // configure full scale range of gyroscope +-2000 grados/segundo
-    i2c_write_blocking(i2c_default, addr, buf3, 2, false);;
- 
+    i2c_write_blocking(i2c_default, addr, buf2, 2, false);
+
+    int8_t buf4[] = {0x1D, 0x03};
+    // // Switch on the low-pass filter of Gyroscope.
+    i2c_write_blocking(i2c_default, addr, buf4, 2, false);
+
     setOffset(XOffsetAccel, XAccel);
     setOffset(YOffsetAccel, YAccel);
     setOffset(ZOffsetAccel, ZAccel);
@@ -36,6 +40,7 @@ void mpu6050_reset() {
     setOffset(YOffsetGyro, YGyro);
     setOffset(ZOffsetGyro, ZGyro);
 }
+
 
 void setOffset(int16_t valor, uint8_t dir){
     uint8_t buf[3];
@@ -62,18 +67,18 @@ void mpu6050_read_raw(int16_t *gyro, int16_t accel[3]) {
 
     uint8_t buffer[6];
 
-    // Start reading acceleration registers from register 0x3B for 6 bytes
-    uint8_t val = 0x3B;
-    i2c_write_blocking(i2c_default, addr, &val, 1, true); // true to keep master control of bus
-    i2c_read_blocking(i2c_default, addr, buffer, 6, false);
+    // // Start reading acceleration registers from register 0x3B for 6 bytes
+    // uint8_t val = 0x3B;
+    // i2c_write_blocking(i2c_default, addr, &val, 1, true); // true to keep master control of bus
+    // i2c_read_blocking(i2c_default, addr, buffer, 6, false);
 
-    for (int i = 0; i < 3; i++) {
-        accel[i] = (buffer[i * 2] << 8 | buffer[(i * 2) + 1]);
-    }
+    // for (int i = 0; i < 3; i++) {
+    //     accel[i] = (buffer[i * 2] << 8 | buffer[(i * 2) + 1]);
+    // }
 
     // Now gyro data from reg 0x43 for 6 bytes
     // The register is auto incrementing on each read
-    val = 0x47;
+    uint8_t val = 0x47;
     //i2c_write_timeout_us(i2c_default, addr, &val, 1, true, 10000);
     //i2c_read_timeout_us(i2c_default, addr, buffer, 2, false, 10000);
     i2c_write_blocking(i2c_default, addr, &val, 1, true);

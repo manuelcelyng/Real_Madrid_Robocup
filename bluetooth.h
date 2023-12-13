@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define BUFFER_SIZE 20
+#define BUFFER_SIZE 50
 #define GPIO_UART_TX 8
 #define GPIO_UART_RX 9
 
