@@ -10,12 +10,13 @@ project(myRealMadridRobocup)
 pico_sdk_init()
 
 add_executable(myrealmadridrobocup
-    main.c
-    bluetooth.c
-    control.c
-    motor_control.c
-    wheel_control.c
-    imu.c
+    main.cpp
+    bluetooth.cpp
+    control.cpp
+    motor_control.cpp
+    wheel_control.cpp
+    imu.cpp
+    dribbleo.cpp
 )
 
 pico_enable_stdio_uart(myrealmadridrobocup 1)
