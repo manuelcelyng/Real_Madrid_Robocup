@@ -7,18 +7,18 @@
 #include "pico/binary_info.h"
 
 static int addr = 0x68;
-#define XAccel 0x06
-#define YAccel 0x08
-#define ZAccel 0x0A
+#define XAccel 0x77
+#define YAccel 0x7A
+#define ZAccel 0x7D
 #define XGyro 0x13
 #define YGyro 0x15
 #define ZGyro 0x17
-#define XOffsetAccel -1252
-#define YOffsetAccel -615
-#define ZOffsetAccel 1800
+#define XOffsetAccel -4599
+#define YOffsetAccel 6641
+#define ZOffsetAccel 8507
 #define XOffsetGyro 19
-#define YOffsetGyro -47
-#define ZOffsetGyro 5
+#define YOffsetGyro 41
+#define ZOffsetGyro 11
 #define GPIO_FUNC_I2C 3
 #define IMU_I2C_SDA_PIN 20
 #define IMU_I2C_SCL_PIN 21

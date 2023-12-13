@@ -39,17 +39,17 @@ bool repeating_timer_callback2(struct repeating_timer *t);
 bool repeating_timer_callback21(struct repeating_timer *t);
 
 bool repeating_timer_callback(struct repeating_timer *t) {
-    printf("imu\n");
     if(mutex_enter_timeout_ms(&my_mutex2, 5)){
         mpu6050_read_raw(&gyro, acceleration);
         mutex_exit(&my_mutex2);
         if(gyro > 60 || gyro < -60){ 
-            ang_z = gyro*IMU_INTERVAL_TIMER_US;
+            ang_z = -gyro*IMU_INTERVAL_TIMER_US;
             //ang_z /= 16400000.0;
             ang_z /= 939650784.0;
             ang_z += ang_z_prev;
             ang_z_prev=ang_z;
         }
+       
         timer_fired =  true;
     }
     return true;
@@ -173,7 +173,6 @@ int main(){
 
                 if(cirMov){    
                     t_i += IMU_INTERVAL_TIMER_MS*1e-3;//(time_us_64()-offset_time)*1e-6;
-                    printf("time %f\n", t_i);
                     qd[0][0] = centro[0]+radio*sinf(b * t_i);
                     qd[1][0] = centro[1]+radio*cosf(b * t_i);
                     if (b * t_i > angulo){
@@ -239,7 +238,7 @@ int main(){
                         break;
                     }
 
-                    printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
+                    //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
                     if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
                     //if(dteta[0][0] ==0 && dteta[1][0] ==0 && dteta[2][0] ==0 && dteta[3][0] ==0  ){
                         
