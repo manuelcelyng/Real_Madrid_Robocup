@@ -27,18 +27,6 @@
 
 // By default these devices  are on bus address 0x68
 //int addr = 0x68;
-#define XAccel 0x06
-#define YAccel 0x08
-#define ZAccel 0x0A
-#define XGyro 0x13
-#define YGyro 0x15
-#define ZGyro 0x17
-#define XOffsetAccel -1167
-#define YOffsetAccel -496
-#define ZOffsetAccel 1811
-#define XOffsetGyro 21
-#define YOffsetGyro -45
-#define ZOffsetGyro 7
 /**/
 // #ifdef i2c_default
 // static void mpu6050_reset() {
@@ -107,18 +95,23 @@ int main() {
 
     // This example will use I2C0 on the default SDA and SCL pins (4, 5 on a Pico)
     i2c_init(i2c_default, 400 * 1000);
-    init_i2c_imu();
+    gpio_set_function(I2C_SDA_PIN, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL_PIN, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA_PIN);
+    gpio_pull_up(I2C_SCL_PIN);
+    // Make the I2C pins available to picotool
+    bi_decl(bi_2pins_with_func(I2C_SDA_PIN, I2C_SCL_PIN, GPIO_FUNC_I2C));
 
     mpu6050_reset();
 
     int16_t acceleration[3], gyro[3], temp;
     uint8_t buffer[6];
-    setOffset(XOffsetAccel, XAccel);
-    setOffset(YOffsetAccel, YAccel);
-    setOffset(ZOffsetAccel, ZAccel);
-    setOffset(XOffsetGyro, XGyro);
-    setOffset(YOffsetGyro, YGyro);
-    setOffset(ZOffsetGyro, ZGyro);
+    //setOffset(XOffsetAccel, XAccel);
+    //setOffset(YOffsetAccel, YAccel);
+    //setOffset(ZOffsetAccel, ZAccel);
+    //setOffset(XOffsetGyro, XGyro);
+    //setOffset(YOffsetGyro, YGyro);
+    //setOffset(ZOffsetGyro, ZGyro);
 
     while (1) {
         mpu6050_read_raw(acceleration, gyro, &temp);

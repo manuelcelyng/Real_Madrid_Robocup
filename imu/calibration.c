@@ -135,7 +135,7 @@ int main() {
         else {acceleration0[0]++;}
         if (acceleration[1]>0){acceleration0[1]--;}
         else {acceleration0[1]++;}
-        if (acceleration[2]-16384>0){acceleration0[2]--;}
+        if (acceleration[2]+4096>0){acceleration0[2]--;}
         else {acceleration0[2]++;}
 
         setOffset(acceleration0[0], XAccel);
