@@ -13,9 +13,9 @@ static int addr = 0x68;
 #define XGyro 0x13
 #define YGyro 0x15
 #define ZGyro 0x17
-#define XOffsetAccel -1179
-#define YOffsetAccel -472
-#define ZOffsetAccel 1805
+#define XOffsetAccel -1252
+#define YOffsetAccel -615
+#define ZOffsetAccel 1800
 #define XOffsetGyro 19
 #define YOffsetGyro -47
 #define ZOffsetGyro 5
@@ -23,8 +23,8 @@ static int addr = 0x68;
 #define IMU_I2C_SDA_PIN 20
 #define IMU_I2C_SCL_PIN 21
 
-#define IMU_INTERVAL_TIMER_MS 5
-#define IMU_INTERVAL_TIMER_US 5000
+#define IMU_INTERVAL_TIMER_MS 25
+#define IMU_INTERVAL_TIMER_US 25000
 
 /* Example code to talk to a MPU6050 MEMS accelerometer and gyroscope
    This is taking to simple approach of simply reading registers. It's perfectly
@@ -49,5 +49,5 @@ void mpu6050_reset();
 void init_i2c_imu();
 void setOffset(int16_t valor, uint8_t dir);
 int16_t getOffset(uint8_t dir);
-void mpu6050_read_raw(int16_t *gyro);
+void mpu6050_read_raw(int16_t *gyro, int16_t accel[3]);
 #endif

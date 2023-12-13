@@ -55,15 +55,15 @@ int16_t getOffset(uint8_t dir){
     return valor;
 }
 
-void mpu6050_read_raw(int16_t *gyro) {
+void mpu6050_read_raw(int16_t *gyro, int16_t accel[3]) {
     // For this particular device, we send the device the register we want to read
     // first, then subsequently read from the device. The register is auto incrementing
     // so we don't need to keep sending the register we want, just the first.
 
     uint8_t buffer[6];
 
-    // Start reading acceleration registers from register 0x3B for 6 bytes
-    //uint8_t val = 0x3B;
+    // // Start reading acceleration registers from register 0x3B for 6 bytes
+    // uint8_t val = 0x3B;
     // i2c_write_blocking(i2c_default, addr, &val, 1, true); // true to keep master control of bus
     // i2c_read_blocking(i2c_default, addr, buffer, 6, false);
 
