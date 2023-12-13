@@ -239,12 +239,12 @@ int main(){
                         break;
                     }
 
-                    //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
-                    // if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
-                    // //if(dteta[0][0] ==0 && dteta[1][0] ==0 && dteta[2][0] ==0 && dteta[3][0] ==0  ){
+                    printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
+                    if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
+                    //if(dteta[0][0] ==0 && dteta[1][0] ==0 && dteta[2][0] ==0 && dteta[3][0] ==0  ){
                         
-                    //     run_control_wheels =  false;
-                    // }
+                        run_control_wheels =  false;
+                    }
                     // printf("q0 : %f  - q1: %f \n", q[0][0], q[1][0]);
                     desiredSpeed[0] = dteta[0][0];  // RUEDA 1
                     desiredSpeed[1] = dteta[1][0];  // RUEDA 2
