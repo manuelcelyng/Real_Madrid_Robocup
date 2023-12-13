@@ -8,7 +8,8 @@
 
 //incluyo el .h
 #include "bluetooth.h"
-#include "sharedfunctions.h"
+#include "control.h"
+
 
 
 
@@ -22,6 +23,7 @@ void uart_rx_handler() {
     char data;
    
     while (uart_is_readable(uart1)) {    
+        
         while ((data = uart_getc(uart1)) != '\n') {        
             buffer[buffer_index++] = data;
         }
@@ -35,7 +37,7 @@ void uart_rx_handler() {
         int value1 = atoi(strtok(NULL, ";"));       // Como se sabe que son números, se convierte a entero, si se quiere double >> double numero = strtod(strtok(buffer, ";"), NULL);
         int value2 = atoi(strtok(NULL, ";"));
         
-        moverMotor(move, value1, value2);
+        ejecutarMovimiento(move, value1, value2);
         buffer_index = 0;
     }
 }

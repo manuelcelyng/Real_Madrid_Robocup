@@ -7,8 +7,9 @@
 // include mis propios .h
 #include "motor_control.h" // .h definicion de variables y metodos para el control del motor
 #include "wheel_control.h"
-#include "sharedfunctions.h" // es el que comparte funciones con el codigo bluetooth.c
 
+
+// Initialize global variables
 DutyCycle duty = {750,750,750,750};
 
 
@@ -38,32 +39,7 @@ void initMotor(uint8_t PWM_GPIO){
     pwm_set_chan_level(pwm_gpio_to_slice_num(PWM_GPIO), pwm_gpio_to_channel(PWM_GPIO), 750); 
 }
 
-// la que llama el bluetooth
-void moverMotor(char* move, int value1, int value2){
-    // strcmp(move, "T")        // Si se quiere comparar una cadena más larga en el if que no sea de un solo caracter
-    // Movimiento GIRO, utilizar value1, es el valor del ÁNGULO
-    if(move[0] == 'T') {
-        printf("GIRO %d\n", value1);
-    }
 
-    // Movimiento DESPLAZAMIENTO, utilizar value1, es el valor de la DISTANCIA
-    if(move[0] == 'D') {
-        printf("DESPLAZAMIENTO %d\n", value1);
-    }
-
-    // Movimiento DESPLAZAMIENTO CIRCULAR, utilizar value1 es el RADIO, value2 es el ÁNGULO
-    if(move[0] == 'C') {
-        printf("DESPLAZAMIENTO CIRCULAR %d, %d\n", value1, value2);
-    }
-}
-
-void setDutyxPID(int one_D, int two_D, int three_D, int four_D){
-    
-    pwm_set_gpio_level(PWM_GPIO_MOTOR_ONE, one_D); // RUEDA 1
-    pwm_set_gpio_level(PWM_GPIO_MOTOR_TWO, two_D); // RUEDA 2
-    pwm_set_gpio_level(PWM_GPIO_MOTOR_THREE, three_D); // RUEDA 3 
-    pwm_set_gpio_level(PWM_GPIO_MOTOR_FOUR, four_D);   // RUEDA 4
-}
 
 
 void initMotorControl(){
@@ -99,10 +75,11 @@ void adjustPWM(int i){
         if (duty[i] > MAX_DUTY)
         {
             duty[i] = MAX_DUTY;
-        }else if (duty[i]< 700)
+        }else if (duty[i]<  MIN_DUTY)
         {
             duty[i] = MIN_DUTY;
         } 
+       
 
         // swicht  
 
@@ -143,7 +120,7 @@ void adjustPWM(int i){
     {
         duty_aux[3] = duty[3];
     }*/
-    setDutyxPID((int)duty[0], (int)duty[1], (int)duty[2], (int)duty[3]);
+    //setDutyxPID((int)duty[0], (int)duty[1], (int)duty[2], (int)duty[3]);
     //printf("%d,%d,%d,%d\n",(int)duty[0],(int)duty[1], (int)duty[2], (int)duty[3]);
 
 }
