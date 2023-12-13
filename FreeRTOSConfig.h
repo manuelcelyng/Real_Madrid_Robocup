@@ -48,7 +48,7 @@
 #define configUSE_DAEMON_TASK_STARTUP_HOOK      0 // 1 app must define a daemon task startup hook   0 daemon task startup hook will not be calles
 #define configUSE_TICK_HOOK                     0 // 1 if you wish to use a tick hook      0 to omit a tick hook.
 #define configCPU_CLOCK_HZ                      133000000 // frequency in Hz at which the internal clock that drives the peripheral used to generate the tick interrupt will be executing
-#define configTICK_RATE_HZ                      ( ( TickType_t ) 10000 ) //  Frequency of the RTOS tick interrupt.
+#define configTICK_RATE_HZ                      ( ( TickType_t ) 100 ) //  Frequency of the RTOS tick interrupt.
 #define configMAX_PRIORITIES                    32 // The number of priorities available to the application tasks
 #define configMINIMAL_STACK_SIZE                ( configSTACK_DEPTH_TYPE ) 256 //The number of priorities available to the application tasks
 #define configMAX_TASK_NAME_LEN                 10 // The maximum permissible length of the descriptive name given to a task when the task is created
@@ -63,7 +63,7 @@
 #define configUSE_COUNTING_SEMAPHORES           1
 #define configQUEUE_REGISTRY_SIZE               8
 #define configUSE_QUEUE_SETS                    1
-#define configUSE_TIME_SLICING                  1 // enables time slicing
+#define configUSE_TIME_SLICING                  1 // enables time slicing, tares de igual prioridad
 #define configUSE_NEWLIB_REENTRANT              0
 #define configENABLE_BACKWARD_COMPATIBILITY     0
 #define configNUM_THREAD_LOCAL_STORAGE_POINTERS 5

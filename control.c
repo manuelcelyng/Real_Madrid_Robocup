@@ -7,7 +7,6 @@ int select_movement = 0; // 0 , no hace nada.
 int value1 = 0;
 int value2 = 0;
 
-
 void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
     float phi = q[2][0];
     float r = 0.0325;
@@ -59,11 +58,10 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
     dteta[2][0] = A[2][0]*U[0][0] + A[2][1]*U[1][0] + A[2][2]*U[2][0];
     dteta[3][0] = A[3][0]*U[0][0] + A[3][1]*U[1][0] + A[3][2]*U[2][0];
 
-     dteta[0][0] *= 3;
-     dteta[1][0] *= 3;
-     dteta[2][0] *= 3;
-     dteta[3][0] *= 3;
-
+    dteta[0][0] *= 5;
+    dteta[1][0] *= 5;
+    dteta[2][0] *= 5;
+    dteta[3][0] *= 5;
     // Limitar dteta al rango de -400 a 400
     for (int i = 0; i < 4; i++) {
         if (dteta[i][0] > 150.0) {
@@ -82,7 +80,7 @@ void planta(float U[3][1], float q[3][1], float dq[3][1], float dteta[4][1]) {
 void control(float e[3][1], float ek[3][1], float ek2[3][1], float q[3][1], float uk[3][1], float U[3][1]) {
     float kc = 100;
     float v_max = 10.0;
-    float w_max = 2;
+    float w_max = 8;
     float ti = 0.01;
     float ts = 0.06;
     float td = 0.001;
@@ -90,7 +88,7 @@ void control(float e[3][1], float ek[3][1], float ek2[3][1], float q[3][1], floa
     float q0 = kc * (1 + ts / (2 * ti) + td / ts);
     float q1 = -kc * (1 - ts / (2 * ti) + 2*td / ts);
     float q2 = -kc *td/ts;
-    float k[3][1] = {{1}, {1}, {0.01}};
+    float k[3][1] = {{1}, {1}, {0.06}};
     
     // Calculate the rotation matrix R
     float R[3][3];
@@ -107,12 +105,13 @@ void control(float e[3][1], float ek[3][1], float ek2[3][1], float q[3][1], floa
     // Calculate u
     float u[3][1];
     for (int i = 0; i < 3; i++) {
-        u[i][0] = (q0 * e[i][0] + q1 * ek[i][0] + q2 * ek2[i][0])*k[i][0] + uk[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
-        if (i == 2 && e[i][0]<0.1745 && e[i][0]>-0.1745){
+        //u[i][0] = (q0 * e[i][0] + q1 * ek[i][0] + q2 * ek2[i][0])*k[i][0] + uk[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
+        if (i == 2 && e[i][0]<0.1 && e[i][0]>-0.1){
             u[i][0] = 0;
         }else {
             u[i][0] = kc*(e[i][0])*k[i][0];//uk[i][0] + q0 * e[i][0] + q1 * ek[i][0];
         }
+        uk[i][0] = u[i][0];
     }
     //
 
@@ -163,7 +162,7 @@ void ejecutarMovimiento(char* move, int value_1, int value_2){
         value1 = value_1;
         //printf("GIRO %d\n", value_1);
         select_movement = 1;
-      
+        run_command =  true;
     }
 
     // Movimiento DESPLAZAMIENTO, utilizar value1, es el valor de la ángulo
@@ -173,17 +172,16 @@ void ejecutarMovimiento(char* move, int value_1, int value_2){
         value1 = value_1;
         value2 = value_2;  
         select_movement = 2;
-        
+        run_command =  true;
     }
 
     // Movimiento DESPLAZAMIENTO CIRCULAR, utilizar value1 es el RADIO, value2 es el ÁNGULO
     if(move[0] == 'C') {
-
+        value1 = value_1;
+        value2 = value_2; 
         //  Desplazamiento circular con un radio determinado ( parámetros :  radio ,  ángulo)
         //printf("DESPLAZAMIENTO CIRCULAR %d, %d\n", value_1, value_2);
         select_movement = 3;
+        run_command =  true;
     }
-
-
-   
 }

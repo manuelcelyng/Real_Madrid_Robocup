@@ -11,7 +11,7 @@
 
 // All struct for PID control
 SpeedData speedData = {0.0, 0.0, 0.0, 0.0};
-DesiredSpeedData desiredSpeed = {0.0, 0.0, 0.0, 0.0};
+volatile DesiredSpeedData desiredSpeed = {0.0, 0.0, 0.0, 0.0};
 PIDData pid = {0.0, 0.0, 0.0, 0.0};
 PIDIntegralData pidIntegral = {0.0, 0.0, 0.0, 0.0};
 PIDErrorData pidPreviousError = {0.0, 0.0, 0.0, 0.0};
@@ -179,8 +179,6 @@ void obtainAngle( double startAngle, bool start){
     // 0000000011111111[1]  -> encoder send us bits 0:7   // TOTAL 12 BITS INFORMATION
     uint8_t buffer[2];  // buffer[0] guarda los más significativos, y buffer[1] guarda los menos significativos.
     _uint_16_t aux;
-
-    
     // info de los registros y los estados del enconder. 
     i2c_write_blocking(i2c1, ENCODER_ADDR,&RAWANGLE_L,1, true);
     i2c_read_blocking(i2c1, ENCODER_ADDR, &buffer[1],1,true);
