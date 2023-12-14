@@ -5,8 +5,8 @@
 
 
 // include mis propios .h
-#include "motor_control.h" // .h definicion de variables y metodos para el control del motor
-#include "wheel_control.h"
+#include "motor_control.hpp" // .h definicion de variables y metodos para el control del motor
+#include "wheel_control.hpp"
 
 
 // Initialize global variables

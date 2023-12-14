@@ -7,9 +7,9 @@
 
 
 //incluyo el .h
-#include "bluetooth.h"
-#include "control.h"
-#include "sharedfunctions.h"
+#include "bluetooth.hpp"
+#include "control.hpp"
+#include "sharedfunctions.hpp"
 
 
 
@@ -29,9 +29,10 @@ void uart_rx_handler() {
         }
         buffer[buffer_index] = '\0';
         
+       
+        xQueueSendFromISR(xQueueISRBluetooth, &buffer, NULL);
         buffer_index = 0;
 
-        xQueueSendFromISR(xQueueISRBluetooth, &buffer, NULL);
     }
 }
 

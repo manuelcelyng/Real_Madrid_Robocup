@@ -23,12 +23,13 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 if (TARGET tinyusb_device)
         add_executable(FreeRTOS_ex1 
-        main.c
-        bluetooth.c
-        control.c
-        motor_control.c
-        wheel_control.c
-        imu.c 
+        main.cpp
+        bluetooth.cpp
+        control.cpp
+        motor_control.cpp
+        wheel_control.cpp
+        imu.cpp 
+        dribbleo.cpp
         )
         target_include_directories(FreeRTOS_ex1 PUBLIC ./)
 

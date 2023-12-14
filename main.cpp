@@ -14,12 +14,17 @@
 #include "hardware/timer.h"
 
 // .h propios.
-#include "sharedfunctions.h"
-#include "motor_control.h"
-#include "control.h"
-#include "wheel_control.h"
-#include "bluetooth.h" // .h definicion de todo lo relacionado a la comunicación bluetooth
-#include "imu.h"
+#include "sharedfunctions.hpp"
+#include "motor_control.hpp"
+#include "control.hpp"
+#include "wheel_control.hpp"
+#include "bluetooth.hpp" // .h definicion de todo lo relacionado a la comunicación bluetooth
+#include "imu.hpp"
+#include "dribbleo.hpp"
+
+
+
+Dribbleo* dribbleo;      // Clase usada para manejar los movimientos del dribble   
 
 // SECCIÓN DE DEFINICIÓN DE VARIABLES GLOBALES Y FUNCIONES DE ATENCIÓN A INTERRUPCIÓN COMO LOS TIMERS.
 // Timers, los cuales son interrupciónes que dan paso a la ejecución de determinada tarea.
@@ -27,9 +32,9 @@ bool repeating_timer_callback_imu(struct repeating_timer *t);
 bool repeating_timer_callback_encoder(struct repeating_timer *t);
 // Definir semáforos, mutex y cola necesarios para el correcto funcionamiento de las tareas.
 SemaphoreHandle_t xSemaphoreImuMain; // Semaforo entre la IMU y el Main control
-SemaphoreHandle_t xSemaphoreEncoderWheel; // Semafoto entre la tarea de la muestra del ENCODER y la Ventana
+SemaphoreHandle_t xSemaphoreEncoderWheel; // Semafoto Muestreo encoder.
 SemaphoreHandle_t xSemaphoreInitControl; // Semáforo para indicarle inicio a la tarea del control de la llante
-SemaphoreHandle_t xMutexSharedResources; // Mutex para la variable compartida desiredSpeed 
+SemaphoreHandle_t xMutexSharedResources; // Mutex para la v|ariable compartida desiredSpeed 
 SemaphoreHandle_t xSemaphoreIMUCheck; // MUtes imu angulo No es necesario siempre y cuando la tarea se ejecute en un solo core.
 SemaphoreHandle_t xMutexSharedI2C; // Mutex Para el uso del I2C 
 
@@ -107,6 +112,10 @@ void TaskvBluetooth(void *pvParameters) {
             dataCommands.value1 = value1;
             dataCommands.value2 = value2;
             dataCommands.movement = select_movement;
+
+            value1= 0;
+            value2 = 0;
+            select_movement = 0;
         // printf("%d,%d,%d \n" , dataCommands.value1, dataCommands.value2, dataCommands.movement);
         xQueueSend(xQueueBluetoothCommands, &dataCommands, portMAX_DELAY);
 
@@ -133,11 +142,7 @@ void TaskvImuSample(void *pvParameters) {
             ang_z += ang_z_prev;
             ang_z_prev=ang_z;
         }
-        printf("%f\n", ang_z);
-        xSemaphoreGive(xSemaphoreIMUCheck);
-  
-
-       
+        xSemaphoreGive(xSemaphoreIMUCheck); 
     }
 }
 
@@ -577,6 +582,8 @@ int main() {
     gpio_set_dir(GPIO_LED   , GPIO_OUT);
     sleep_ms(2000);
     gpio_put(GPIO_LED,false);
+
+    dribbleo = new Dribbleo();
 
     // Define the task handles
     

@@ -5,8 +5,8 @@
 #include "hardware/i2c.h"
 #include <inttypes.h>
 // include my own .h
-#include "wheel_control.h"
-#include "imu.h"
+#include "wheel_control.hpp"
+#include "imu.hpp"
 
 
 // All struct for PID control

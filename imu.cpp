@@ -1,4 +1,4 @@
-#include "imu.h"
+#include "imu.hpp"
 
 #ifdef i2c_default
 
@@ -25,11 +25,11 @@ void mpu6050_reset() {
     // Configure full scale range of gyroscope +-2000 grados/segundo
     i2c_write_blocking(i2c_default, addr, buf1, 2, false);
   
-    int8_t buf2[] = {0x1C, 0x10};
+    uint8_t buf2[] = {0x1C, 0x10};
     // configure the accelerometer output -  AFS_SEL  +-8g scale range off acelerometer
     i2c_write_blocking(i2c_default, addr, buf2, 2, false);
 
-    int8_t buf4[] = {0x1D, 0x03};
+    uint8_t buf4[] = {0x1D, 0x03};
     // // Switch on the low-pass filter of Gyroscope.
     i2c_write_blocking(i2c_default, addr, buf4, 2, false);
 

@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <math.h>
 
+
+#include "dribbleo.hpp"
+
 bool run_command = false;
 int select_movement = 0; // 0 , no hace nada.
 int value1 = 0;
@@ -184,4 +187,20 @@ void ejecutarMovimiento(char* move, int value_1, int value_2){
         select_movement = 3;
         run_command =  true;
     }
+
+     // Movimiento de DRIBBLIGN
+    if(move[0] == 'A') {
+        dribbleo->activeDribbleo(false, true);
+    }
+
+     // Movimiento de KICK/PATEO
+    if(move[0] == 'K') {
+        dribbleo->activeDribbleo(true, false);
+    }
+
+     // Movimiento de STOP DRIBBLIGN
+    if(move[0] == 'G') {
+        dribbleo->activeDribbleo(false, false);
+    }
+    
 }

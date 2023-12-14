@@ -19,7 +19,7 @@ static int addr = 0x68;
 #define XOffsetGyro 19
 #define YOffsetGyro 41
 #define ZOffsetGyro 11
-#define GPIO_FUNC_I2C 3
+//#define GPIO_FUNC_I2C 3
 #define IMU_I2C_SDA_PIN 20
 #define IMU_I2C_SCL_PIN 21
 
