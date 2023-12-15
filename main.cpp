@@ -97,7 +97,7 @@ void TaskvBluetooth(void *pvParameters) {
     DataGroup dataCommands;
     while (1)
     {
-        char datosRecibidos[20]; 
+        char datosRecibidos[BUFFER_SIZE]; 
          if (xQueueReceive(xQueueISRBluetooth, &datosRecibidos, portMAX_DELAY)) {
             // Procesar los datos
             char *move = strtok(datosRecibidos, ";");
@@ -192,6 +192,7 @@ void TaskvMainControl(void *pvParameters) {
     // int16_t angulo=0;
     run_command = true;
 
+    bool arranque__status = false;
 
     while (1) {
         if(taskState){
@@ -212,6 +213,7 @@ void TaskvMainControl(void *pvParameters) {
                 qd[0][0] += 0.022*bluetoothCommands.value1;
                 bluetoothCommands.movement = 0;
             }else if(bluetoothCommands.movement == 3){
+                t_i = 0;
                 angulo = TO_RAD(bluetoothCommands.value2,0);
                 radio = 0.020*bluetoothCommands.value1;
                 centro[0] = q[0][0];
@@ -221,15 +223,15 @@ void TaskvMainControl(void *pvParameters) {
                 bluetoothCommands.movement = 0;
             }
 
-            if(cirMov){
-                t_i += IMU_INTERVAL_TIMER_MS*1e-3;//(time_us_64()-offset_time)*1e-6;
+            if(cirMov){     
                 // printf("time %f\n", t_i);
                 qd[0][0] = centro[0]+radio*sinf(b * t_i);
                 qd[1][0] = centro[1]+radio*cosf(b * t_i);
                 if (b * t_i > angulo){
                     cirMov = false;
-                    t_i = 0;
+                   
                 }
+                t_i += IMU_INTERVAL_TIMER_MS*1e-3;//(time_us_64()-offset_time)*1e-6;
             }
 
             // Update ek
@@ -276,35 +278,49 @@ void TaskvMainControl(void *pvParameters) {
 
             
             xSemaphoreTake(xMutexSharedResources, portMAX_DELAY);
-            if(!run_command){
-                cancel_repeating_timer(&timer);
-                taskState = false;
-                ang_z_prev = 0;
-                ang_z = 0;
-                q[0][2] = 0;
-                qd[0][2] = 0;
-                desiredSpeed[0] = 0;  // RUEDA 1
-                desiredSpeed[1] = 0;  // RUEDA 2
-                desiredSpeed[2] = 0;  // RUEDA 3
-                desiredSpeed[3] = 0;  // RUEDA 4
+
+            // if(!Inicio_control){
+            //     xSemaphoreGive(xSemaphoreInitControl); // Inicializa la ejecución del control de las Ruedas
+            //     Inicio_control = true;
+            // }
+
+            // if(!run_command){
                 
-             }
+            //     cancel_repeating_timer(&timer);
+            //     Inicio_control =  false;
+            //     taskState = false;
+            //     ang_z_prev = 0;
+            //     ang_z = 0;
+            //     q[0][2] = 0;
+            //     qd[0][2] = 0;
+            //     desiredSpeed[0] = 0;  // RUEDA 1
+            //     desiredSpeed[1] = 0;  // RUEDA 2
+            //     desiredSpeed[2] = 0;  // RUEDA 3
+            //     desiredSpeed[3] = 0;  // RUEDA 4
+                
+            //  }
             //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
             // if(e[0][0] > -0.1 && e[0][0] < 0.1 && e[1][0] > -0.1 && e[1][0] < 0.1 && e[2][0] > -0.10726 && e[2][0] < 0.10726){
             // //if(dteta[0][0] ==0 && dteta[1][0] ==0 && dteta[2][0] ==0 && dteta[3][0] ==0  ){
                 
             //     run_control_wheels =  false;
             // }
-
             desiredSpeed[0] = dteta[0][0];  // RUEDA 1
             desiredSpeed[1] = dteta[1][0];  // RUEDA 2
             desiredSpeed[2] = dteta[2][0];  // RUEDA 3
             desiredSpeed[3] = dteta[3][0];  // RUEDA 4
+            xSemaphoreGive(xMutexSharedResources);
+            
+
+            
+            
             //printf("%f, %f, %f, %f \n", desiredSpeed[0], desiredSpeed[1], desiredSpeed[2], desiredSpeed[3]);
 
                 
             
-            xSemaphoreGive(xMutexSharedResources);
+           
+
+            
 
 
 
@@ -316,9 +332,9 @@ void TaskvMainControl(void *pvParameters) {
             taskState = true;
             run_control_wheels = true;
             xSemaphoreGive(xMutexSharedResources);
-            xSemaphoreGive(xSemaphoreInitControl); // Inicializa la ejecución del control de las Ruedas
+            xSemaphoreGive(xSemaphoreInitControl);
             
-          
+           
         }    
     }
 }
@@ -406,6 +422,8 @@ void TaskvPIDWheels(void *pvParameters) {
     int contador_finalizacion = 0;
     while (1) {
         if(taskState){
+
+            
             for(int i = 0 ; i<4; i++){
 
                 switch(i)
@@ -510,42 +528,47 @@ void TaskvPIDWheels(void *pvParameters) {
                
             } // fOR
 
-            xSemaphoreTake(xMutexSharedResources, portMAX_DELAY);
-            taskState =  run_control_wheels;
+            //CONDICIÓN DE FINALIZACIÓN : SE QUITA DEL FUNCIONAMIENTO FINAL 
+            // xSemaphoreTake(xMutexSharedResources, portMAX_DELAY);
+            // taskState =  run_control_wheels;
           
-            if(!taskState){
-                for(int i = 0 ; i<4; i++){
-                    // printf("error_previo R %d : %f\n",i+1,pidPreviousError[i]);
-                    if(pidPreviousError[i] < 5 && pidPreviousError[i] > -5){
-                        if(i==3){
-                            contador_finalizacion++;
-                        }
-                    }
-                    else{
-                        taskState = true;
-                        break;
-                    }
-                }
-                if(contador_finalizacion ==5){
-                    for(int i = 0; i<4 ; i++){
-                        pid[i] = 0;
-                        duty[i] = 750;
-                        adjustPWM(i);
-                    }
-                    run_command = false;
-                    run_control_wheels = false;
-                    contador_finalizacion = 0;
-                }
-            }  
-            xSemaphoreGive(xMutexSharedResources);
+            // if(!taskState){
+            //     for(int i = 0 ; i<4; i++){
+            //         // printf("error_previo R %d : %f\n",i+1,pidPreviousError[i]);
+            //         if(pidPreviousError[i] < 5 && pidPreviousError[i] > -5){
+            //             if(i==3){
+            //                 contador_finalizacion++;
+            //             }
+            //         }
+            //         else{
+            //             taskState = true;
+            //             run_control_wheels = true;
+            //         }
+            //     }
+            //     if(contador_finalizacion ==4){
+            //         for(int i = 0; i<4 ; i++){
+            //             pid[i] = 0;
+            //             duty[i] = 750;
+            //             adjustPWM(i);
+            //         }
+            //         run_control_wheels= true;
+            //         run_command = false;
+            //         taskState = false;
+            //         contador_finalizacion = 0;
+            //     }
+            // }  
+            // xSemaphoreGive(xMutexSharedResources);
                
 
 
         }else{
+            gpio_put(GPIO_LED,true);
             xSemaphoreTake(xSemaphoreInitControl, portMAX_DELAY);
             // printf("InitControl\n");
             // Inicializa el Timer del muestreo del encoder.
+            gpio_put(GPIO_LED,false);
             taskState =  true;
+            vTaskDelay(pdMS_TO_TICKS(10));
 
         }
        

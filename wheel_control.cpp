@@ -256,7 +256,7 @@ void calcularControlPID(int i){
     double error = 0; 
     // for all motors
     // for(int i=0 ; i<4 ; i++){
-        
+   
     error =  speedData[i] - desiredSpeed[i]; 
     // printf("Speed: %f, %d\n", speedData[i], i);
     pidIntegral[i] = (pidIntegral[i] + constansI[i]*error)/TOTAL_TIME;
@@ -270,10 +270,12 @@ void calcularControlPID(int i){
     {
         pid[i]  = -30;
     }
-    
-    // divided by 4 taking into account the max speed -> only use the 25% of PID calculated
+
+     // divided by 4 taking into account the max speed -> only use the 25% of PID calculated
     pid[i] = (pid[i]/4); // considerando que la velocidad deseada es maximo 400 rad/s y lo mapeamos entre 0 y 100
     // }
+  
+   
     
 }
 
